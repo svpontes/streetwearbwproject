@@ -1,0 +1,62 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavManager
+@using StreetTshirtApp.Models
+
+@* Adicionamos d-flex e min-vh-100 para garantir que o footer fique no fundo *@
+<div class="page d-flex flex-column min-vh-100">
+    <main class="flex-grow-1">
+        <NavMenu />
+
+        <div class="container mt-3">
+            @* Renderiza o Breadcrumb apenas se não estiver na Home "/" *@
+            @if (NavManager.ToBaseRelativePath(NavManager.Uri) != "")
+            {
+                <Breadcrumbs Items="GetBreadcrumbs()" />
+            }
+
+            <article>
+                @Body
+            </article>
+        </div>
+    </main>
+
+    @* Chamada do componente Footer (Certifique-se que o nome do arquivo é Footer.razor) *@
+    <Footer />
+</div>
+
+@code {
+    private List<BreadcrumbItem> GetBreadcrumbs()
+    {
+        var relativeUri = NavManager.ToBaseRelativePath(NavManager.Uri);
+        var segments = relativeUri.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        
+        var items = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem { Text = "HOME", Url = "/" }
+        };
+
+        var accumulatedPath = "";
+
+        for (int i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+            accumulatedPath += $"/{segment}";
+            
+            if (int.TryParse(segment, out _)) continue;
+
+            items.Add(new BreadcrumbItem
+            {
+                Text = segment.ToUpper(),
+                Url = accumulatedPath,
+                IsActive = (i == segments.Length - 1)
+            });
+        }
+
+        return items;
+    }
+
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += (s, e) => StateHasChanged();
+    }
+}

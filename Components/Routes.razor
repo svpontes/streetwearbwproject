@@ -1,0 +1,18 @@
+﻿<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        @* Isso garante que, se a rota falhar, o Blazor ainda use seu layout de fundo preto *@
+        <LayoutView Layout="@typeof(Layout.MainLayout)">
+            <div class="container mt-5 text-center text-white">
+                <h1 class="display-1 fw-bold">404</h1>
+                <p class="lead text-secondary text-uppercase" style="letter-spacing: 2px;">
+                    Drip not found. This page doesn't exist.
+                </p>
+                <a href="/" class="btn btn-outline-light rounded-0 mt-3">BACK TO HOME</a>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

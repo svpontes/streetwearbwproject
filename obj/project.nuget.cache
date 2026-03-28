@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "JB07LwGkONo=",
+  "success": true,
+  "projectFilePath": "D:\\CSE325\\project\\streettshirtproject\\streettshirtapp\\StreetTshirtApp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\berranteiro\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.3\\microsoft.aspnetcore.app.internal.assets.10.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

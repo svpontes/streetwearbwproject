@@ -1,0 +1,51 @@
+@page "/register"
+@inject StreetTshirtApp.Services.AuthService AuthService
+@inject NavigationManager NavManager
+
+<div class="row justify-content-center align-items-center min-vh-100" style="margin-top: -100px;">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-lg p-4 bg-black text-white rounded-0">
+            <h2 class="text-center fw-bold mb-4" style="letter-spacing: 3px;">JOIN BLUNTWEAR WORLD</h2>
+            
+            <div class="mb-3">
+                <label class="small fw-bold text-secondary">FULL NAME</label>
+                <input type="text" @bind="name" class="form-control bg-transparent border-secondary text-white rounded-0 py-2" placeholder="Your Name" />
+            </div>
+
+            <div class="mb-3">
+                <label class="small fw-bold text-secondary">EMAIL</label>
+                <input type="email" @bind="email" class="form-control bg-transparent border-secondary text-white rounded-0 py-2" placeholder="email@example.com" />
+            </div>
+
+            <div class="mb-4">
+                <label class="small fw-bold text-secondary">PASSWORD</label>
+                <input type="password" @bind="password" class="form-control bg-transparent border-secondary text-white rounded-0 py-2" />
+            </div>
+
+            <button class="btn btn-light w-100 fw-bold py-2 rounded-0 mb-3" @onclick="HandleRegister">
+                CREATE ACCOUNT
+            </button>
+
+            <div class="text-center">
+                <a href="/login" class="text-secondary small text-decoration-none hover-white">Already a member? Login here</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string name = "";
+    private string email = "";
+    private string password = "";
+
+    private void HandleRegister()
+    {
+        // Por enquanto, apenas simulamos o sucesso e logamos o usuário
+        if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
+        {
+            // Aqui você chamaria um método no AuthService para salvar no banco
+            AuthService.Login(email, password); 
+            NavManager.NavigateTo("/");
+        }
+    }
+}

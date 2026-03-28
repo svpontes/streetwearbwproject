@@ -1,0 +1,36 @@
+@using StreetTshirtApp.Models
+
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-transparent p-0 m-0">
+        @foreach (var item in Items)
+        {
+            if (item.IsActive)
+            {
+                <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">
+                    @item.Text
+                </li>
+            }
+            else
+            {
+                <li class="breadcrumb-item">
+                    <a href="@item.Url" class="text-muted text-decoration-none hover-dark">@item.Text</a>
+                </li>
+            }
+        }
+    </ol>
+</nav>
+
+<style>
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "/";
+        color: #6c757d;
+    }
+    .hover-dark:hover {
+        color: #000 !important;
+        text-decoration: underline !important;
+    }
+</style>
+
+@code {
+    [Parameter] public List<BreadcrumbItem> Items { get; set; } = new();
+}
