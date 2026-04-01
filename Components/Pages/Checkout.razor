@@ -1,0 +1,239 @@
+@page "/checkout"
+@using System.ComponentModel.DataAnnotations
+@using StreetTshirtApp.Services
+@using StreetTshirtApp.Models
+@using System.Text.Json
+
+@inject CartService CartService
+@inject NavigationManager NavManager
+@inject ApplicationDbContext DbContext
+
+<div class="container mt-5 pt-5 pb-5">
+    <h2 class="fw-bold mb-4 text-uppercase" style="letter-spacing: 2px;">Checkout</h2>
+
+    @if (CartService.CartItems.Any())
+    {
+        <div class="row g-5">
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-0 p-4">
+                    <h4 class="fw-bold mb-4">Billing Details</h4>
+
+                    <EditForm Model="@checkoutModel" OnValidSubmit="HandleCheckout">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">First Name</label>
+                                <InputText class="form-control rounded-0" @bind-Value="checkoutModel.FirstName" />
+                                <ValidationMessage For="@(() => checkoutModel.FirstName)" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Last Name</label>
+                                <InputText class="form-control rounded-0" @bind-Value="checkoutModel.LastName" />
+                                <ValidationMessage For="@(() => checkoutModel.LastName)" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email</label>
+                            <InputText class="form-control rounded-0" @bind-Value="checkoutModel.Email" />
+                            <ValidationMessage For="@(() => checkoutModel.Email)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Phone</label>
+                            <InputText class="form-control rounded-0" @bind-Value="checkoutModel.Phone" />
+                            <ValidationMessage For="@(() => checkoutModel.Phone)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Address</label>
+                            <InputText class="form-control rounded-0" @bind-Value="checkoutModel.Address" />
+                            <ValidationMessage For="@(() => checkoutModel.Address)" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">City</label>
+                                <InputText class="form-control rounded-0" @bind-Value="checkoutModel.City" />
+                                <ValidationMessage For="@(() => checkoutModel.City)" />
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Postal Code</label>
+                                <InputText class="form-control rounded-0" @bind-Value="checkoutModel.PostalCode" />
+                                <ValidationMessage For="@(() => checkoutModel.PostalCode)" />
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Country</label>
+                                <InputText class="form-control rounded-0" @bind-Value="checkoutModel.Country" />
+                                <ValidationMessage For="@(() => checkoutModel.Country)" />
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold mt-4 mb-3">Payment</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Card Number</label>
+                            <InputText class="form-control rounded-0" @bind-Value="checkoutModel.CardNumber" />
+                            <ValidationMessage For="@(() => checkoutModel.CardNumber)" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Expiry Date</label>
+                                <InputText class="form-control rounded-0" @bind-Value="checkoutModel.ExpiryDate" placeholder="MM/YY" />
+                                <ValidationMessage For="@(() => checkoutModel.ExpiryDate)" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">CVV</label>
+                                <InputText class="form-control rounded-0" @bind-Value="checkoutModel.CVV" />
+                                <ValidationMessage For="@(() => checkoutModel.CVV)" />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100 py-3 fw-bold text-uppercase rounded-0 mt-3">
+                            Place Order
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card p-4 bg-light border-0 rounded-0 shadow-sm">
+                    <h4 class="fw-bold mb-4">Order Summary</h4>
+
+                    @foreach (var item in CartService.CartItems)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">@item.Product.Name</h6>
+                                <small class="text-secondary">
+                                    Size: @item.Size | Qty: @item.Quantity
+                                </small>
+                            </div>
+                            <span class="fw-bold">
+                                @((item.Product.Price * item.Quantity).ToString("C"))
+                            </span>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>@CartService.TotalPrice.ToString("C")</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping</span>
+                        <span class="text-success fw-bold">FREE</span>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between">
+                        <span class="h5 fw-bold">Total</span>
+                        <span class="h5 fw-bold">@CartService.TotalPrice.ToString("C")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-cart-x display-1 text-secondary"></i>
+            <h3 class="mt-4 fw-bold">No items to checkout.</h3>
+            <p class="text-secondary">Your shopping bag is empty.</p>
+            <a href="/catalog" class="btn btn-dark px-5 py-3 mt-3 rounded-0 fw-bold">
+                GO TO CATALOG
+            </a>
+        </div>
+    }
+</div>
+
+@code {
+    private CheckoutModel checkoutModel = new();
+
+    private async Task HandleCheckout()
+    {
+    try 
+    {
+        // 1. Criamos uma lista simplificada dos itens do carrinho para o registro jurídico
+        // Isso garante que o preço e o nome fiquem "congelados" no momento da compra
+        var itemsToSerialize = CartService.CartItems.Select(i => new 
+        {
+            Name = i.Product.Name,
+            Size = i.Size,
+            Quantity = i.Quantity,
+            PriceAtPurchase = i.Product.Price
+        }).ToList();
+
+        // 2. Criamos o registro da Ordem com os dados do formulário e os itens em JSON
+        var newOrder = new Order
+        {
+            CustomerName = $"{checkoutModel.FirstName} {checkoutModel.LastName}",
+            CustomerEmail = checkoutModel.Email,
+            ShippingAddress = $"{checkoutModel.Address}, {checkoutModel.City} - {checkoutModel.PostalCode}",
+            TotalAmount = CartService.TotalPrice,
+            OrderDate = DateTime.Now,
+            Status = "Processing",
+            // Transformamos a lista em uma string JSON
+            SerializedItems = JsonSerializer.Serialize(itemsToSerialize)
+        };
+
+        // 3. Salvamos no Banco de Dados (streetwear.db)
+        DbContext.Orders.Add(newOrder);
+        await DbContext.SaveChangesAsync();
+
+        // 4. Limpamos o carrinho e navegamos para o sucesso
+        CartService.ClearCart();
+        NavManager.NavigateTo("/order-success");
+    }
+    catch (Exception ex)
+    {
+        // Log de erro básico para debug no console
+        Console.WriteLine($"Erro ao processar checkout: {ex.Message}");
+    }
+    }
+
+    public class CheckoutModel
+    {
+        [Required(ErrorMessage = "First name is required.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required.")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Phone is required.")]
+        public string Phone { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Address is required.")]
+        public string Address { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "City is required.")]
+        public string City { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Postal code is required.")]
+        public string PostalCode { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Country is required.")]
+        public string Country { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Card number is required.")]
+        public string CardNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Expiry date is required.")]
+        public string ExpiryDate { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "CVV is required.")]
+        public string CVV { get; set; } = string.Empty;
+    }
+}

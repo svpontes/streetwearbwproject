@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\CSE325\\project\\streettshirtproject\\streettshirtapp\\StreetTshirtApp.csproj": {}
+    "F:\\cse325\\streetwearbwproject\\StreetTshirtApp.csproj": {}
   },
   "projects": {
-    "D:\\CSE325\\project\\streettshirtproject\\streettshirtapp\\StreetTshirtApp.csproj": {
+    "F:\\cse325\\streetwearbwproject\\StreetTshirtApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\CSE325\\project\\streettshirtproject\\streettshirtapp\\StreetTshirtApp.csproj",
+        "projectUniqueName": "F:\\cse325\\streetwearbwproject\\StreetTshirtApp.csproj",
         "projectName": "StreetTshirtApp",
-        "projectPath": "D:\\CSE325\\project\\streettshirtproject\\streettshirtapp\\StreetTshirtApp.csproj",
+        "projectPath": "F:\\cse325\\streetwearbwproject\\StreetTshirtApp.csproj",
         "packagesPath": "C:\\Users\\berranteiro\\.nuget\\packages\\",
-        "outputPath": "D:\\CSE325\\project\\streettshirtproject\\streettshirtapp\\obj\\",
+        "outputPath": "F:\\cse325\\streetwearbwproject\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -56,6 +56,16 @@
               "target": "Package",
               "version": "[10.0.3, )",
               "autoReferenced": true
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.0.5, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[10.0.5, )"
             }
           },
           "imports": [

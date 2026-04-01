@@ -70,3 +70,44 @@ Navigate: cd StreetTshirtApp
 Restore & Run: dotnet watch
 
 Access: http://localhost:5067
+
+Extension info: Main Features Added
+🔐 Authentication & Identity System
+Real Persistence: User registration and login validated against a SQLite database.
+
+Role Management: Automatic role assignment (Customer) and administrative override (Admin).
+
+Session Header: Dynamic Navigation Menu that toggles between "Login" and "User Dropdown" with real-time state notification.
+
+📊 Admin Ledger (Control Center)
+Sales Dashboard: Real-time metrics showing total revenue, order count, and average ticket.
+
+Order Management: Exclusive area to track and manage all customer purchases.
+
+Support Logs: Centralized view for customer messages sent via the contact form.
+
+🗺️ Smart Navigation (Breadcrumbs)
+Automatic Path Tracking: A dynamic system in MainLayout that maps user location (e.g., HOME / CATALOG / PRODUCT).
+
+ID Filtering: Logic to prevent raw database IDs from appearing in the navigation trail.
+
+🛍️ Shopping Experience
+Advanced Product Details: Interactive image gallery, size selection, and dynamic subtotal calculation.
+
+Sticky Footer: Professional 4-column footer with Newsletter integration, social links, and hidden Admin Access links.
+
+📱 Responsive UI/UX
+Mobile-First Design: Fully responsive Hamburger menu and adapted grid systems.
+
+Hot Reload Optimized: Structured for fast development cycles using .NET Watch.
+
+🚀 How to Run
+Clone: git clone https://github.com/svpontes/streettshirtproject.git
+
+Navigate: cd StreetTshirtApp
+
+Update Database: dotnet ef database update
+
+Restore & Run: dotnet watch
+
+Access: http://localhost:5067

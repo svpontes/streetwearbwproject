@@ -1,91 +1,123 @@
 is_global = true
 build_property.TargetFramework = net10.0
-build_property.TargetFrameworkIdentifier = .NETCoreApp
-build_property.TargetFrameworkVersion = v10.0
+build_property.TargetFramework = net10.0
+build_property.TargetPlatformMinVersion = 
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = true
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
 build_property.ProjectTypeGuids = 
 build_property.InvariantGlobalization = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
 build_property.PlatformNeutralAssembly = 
 build_property.EnforceExtendedAnalyzerRules = 
+build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v10.0
 build_property.RootNamespace = StreetTshirtApp
 build_property.RootNamespace = StreetTshirtApp
-build_property.ProjectDir = D:\CSE325\project\streettshirtproject\streettshirtapp\
+build_property.ProjectDir = F:\cse325\streetwearbwproject\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = D:\CSE325\project\streettshirtproject\streettshirtapp
+build_property.MSBuildProjectDirectory = F:\cse325\streetwearbwproject
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/App.razor]
+[F:/cse325/streetwearbwproject/Components/App.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Layout/Breadcrumbs.razor]
+[F:/cse325/streetwearbwproject/Components/Layout/Breadcrumbs.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcQnJlYWRjcnVtYnMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Layout/Footer.razor]
+[F:/cse325/streetwearbwproject/Components/Layout/Footer.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcRm9vdGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Pages/Cart.razor]
+[F:/cse325/streetwearbwproject/Components/Pages/AdminDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pbkRhc2hib2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/cse325/streetwearbwproject/Components/Pages/AdminMessages.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pbk1lc3NhZ2VzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/cse325/streetwearbwproject/Components/Pages/AdminOrders.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pbk9yZGVycy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/cse325/streetwearbwproject/Components/Pages/Cart.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDYXJ0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Pages/Catalog.razor]
+[F:/cse325/streetwearbwproject/Components/Pages/Catalog.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDYXRhbG9nLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Pages/Error.razor]
+[F:/cse325/streetwearbwproject/Components/Pages/Checkout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDaGVja291dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/cse325/streetwearbwproject/Components/Pages/Contact.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb250YWN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/cse325/streetwearbwproject/Components/Pages/Error.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Pages/Home.razor]
+[F:/cse325/streetwearbwproject/Components/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xIb21lLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Pages/Login.razor]
+[F:/cse325/streetwearbwproject/Components/Pages/Login.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMb2dpbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Pages/NotFound.razor]
+[F:/cse325/streetwearbwproject/Components/Pages/NotFound.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Pages/ProductDetails.razor]
+[F:/cse325/streetwearbwproject/Components/Pages/OrderSuccess.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPcmRlclN1Y2Nlc3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/cse325/streetwearbwproject/Components/Pages/ProductDetails.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcm9kdWN0RGV0YWlscy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Pages/Profile.razor]
+[F:/cse325/streetwearbwproject/Components/Pages/Profile.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcm9maWxlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Pages/Register.razor]
+[F:/cse325/streetwearbwproject/Components/Pages/Register.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZWdpc3Rlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Routes.razor]
+[F:/cse325/streetwearbwproject/Components/Routes.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/_Imports.razor]
+[F:/cse325/streetwearbwproject/Components/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xfSW1wb3J0cy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Layout/MainLayout.razor]
+[F:/cse325/streetwearbwproject/Components/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTWFpbkxheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-bp20w2z7l5
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Layout/NavMenu.razor]
+[F:/cse325/streetwearbwproject/Components/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2TWVudS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-ng97g2jg7k
 
-[D:/CSE325/project/streettshirtproject/streettshirtapp/Components/Layout/ReconnectModal.razor]
+[F:/cse325/streetwearbwproject/Components/Layout/ReconnectModal.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcUmVjb25uZWN0TW9kYWwucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-d8uqe6x3js

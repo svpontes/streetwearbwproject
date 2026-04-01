@@ -53,7 +53,9 @@
                         <span class="h5 fw-bold">Total</span>
                         <span class="h5 fw-bold">@CartService.TotalPrice.ToString("C")</span>
                     </div>
-                    <button class="btn btn-dark w-100 py-3 fw-bold text-uppercase rounded-0 mb-2">
+                    <button
+                        @onclick="GoToCheckout" 
+                        class="btn btn-dark w-100 py-3 fw-bold text-uppercase rounded-0 mb-2">
                         Checkout Now
                     </button>
                     <a href="/catalog" class="btn btn-outline-dark w-100 py-2 rounded-0 small">
@@ -77,25 +79,33 @@
 @code {
     private void UpdateQty(CartItem item, int change)
     {
-        // Chama o método que criamos no Service
+        
         CartService.UpdateQuantity(item.Product.Id, item.Size, change);
     }
 
     private void RemoveItem(CartItem item)
     {
-        // Remove totalmente o item independente da quantidade
+        
         CartService.RemoveFromCart(item.Product.Id, item.Size);
     }
 
     protected override void OnInitialized()
     {
-        // Se inscreve no evento para que a página atualize os totais sozinha
+       
         CartService.OnChange += StateHasChanged;
     }
 
     public void Dispose()
     {
-        // Boa prática: desinscrever ao sair da página
+        
         CartService.OnChange -= StateHasChanged;
     }
+
+    private void GoToCheckout()
+    {
+        
+        NavManager.NavigateTo("/checkout");
+    }
+
+   
 }

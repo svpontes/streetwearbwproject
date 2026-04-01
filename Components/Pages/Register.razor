@@ -1,3 +1,11 @@
+@using StreetTshirtApp.Data
+@using StreetTshirtApp.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject StreetTshirtApp.Services.AuthService AuthService
+@inject NavigationManager NavManager
+
+
 @page "/register"
 @inject StreetTshirtApp.Services.AuthService AuthService
 @inject NavigationManager NavManager
@@ -37,15 +45,58 @@
     private string name = "";
     private string email = "";
     private string password = "";
+    private string errorMessage = "";
+    private bool isProcessing = false;
 
-    private void HandleRegister()
+    private async Task HandleRegister()
     {
-        // Por enquanto, apenas simulamos o sucesso e logamos o usuário
-        if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
         {
-            // Aqui você chamaria um método no AuthService para salvar no banco
-            AuthService.Login(email, password); 
+            errorMessage = "Please fill in all fields.";
+            return;
+        }
+
+        isProcessing = true;
+        errorMessage = "";
+
+        try 
+        {
+            // 1. Verificar se o e-mail já existe (Segurança)
+            var userExists = await DbContext.Users.AnyAsync(u => u.Email == email);
+            if (userExists)
+            {
+                errorMessage = "This email is already registered.";
+                isProcessing = false;
+                return;
+            }
+
+            // 2. Criar o novo usuário
+            var newUser = new User
+            {
+                Name = name,
+                Email = email,
+                Password = password, // Em produção, use Hash!
+                Role = "Customer",   // Padrão para novos registros
+                CreatedAt = DateTime.Now
+            };
+
+            // 3. Salvar no SQLite
+            DbContext.Users.Add(newUser);
+            await DbContext.SaveChangesAsync();
+
+            // 4. Fazer o login automático após registrar
+            await AuthService.Login(email, password);
+            
+            // 5. Redirecionar
             NavManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error saving to database: " + ex.Message;
+        }
+        finally
+        {
+            isProcessing = false;
         }
     }
 }
