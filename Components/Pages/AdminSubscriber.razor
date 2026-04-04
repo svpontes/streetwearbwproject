@@ -1,0 +1,107 @@
+@page "/admin/subscribers"
+@using Microsoft.EntityFrameworkCore
+@using StreetTshirtApp.Data
+@using StreetTshirtApp.Models
+@inject ApplicationDbContext DbContext
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Web
+@using StreetTshirtApp.Services
+@inject AuthService Auth
+@inject NavigationManager NavManager
+
+<div class="container mt-5 pt-5 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold text-uppercase mb-2" style="letter-spacing: 3px;">Newsletter Logs</h2>
+            <p class="text-secondary small text-uppercase">Marketing Database // BluntWear</p>
+        </div>
+        <a href="/admin" class="btn btn-outline-dark btn-sm rounded-0 px-4 text-uppercase fw-bold">
+            <i class="bi bi-arrow-left me-2"></i> Dashboard
+        </a>
+    </div>
+
+    @if (subscribers == null)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-dark" role="status"></div>
+        </div>
+    }
+    else if (!subscribers.Any())
+    {
+        <div class="alert alert-light border-dark rounded-0 text-center py-5">
+            <i class="bi bi-people fs-1 d-block mb-3"></i>
+            <span class="text-uppercase fw-bold">No subscribers found in the database.</span>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover border">
+                <thead class="table-dark text-uppercase small">
+                    <tr>
+                        <th class="p-3">ID</th>
+                        <th class="p-3">Email Address</th>
+                        <th class="p-3">Subscription Date</th>
+                        <th class="p-3 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @foreach (var sub in subscribers)
+                    {
+                        <tr>
+                            <td class="p-3 fw-bold">#@sub.Id</td>
+                            <td class="p-3">@sub.Email</td>
+                            <td class="p-3 text-secondary">@sub.SubscribedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="p-3 text-end">
+                                <button class="btn btn-sm btn-outline-danger rounded-0" 
+                                        @onclick="() => DeleteSubscriber(sub.Id)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-4 d-flex justify-content-between align-items-center text-secondary small">
+            <span>TOTAL SUBSCRIBERS: @subscribers.Count</span>
+            <span class="text-uppercase">BluntWear Proprietary Data</span>
+        </div>
+    }
+</div>
+
+@code {
+    private List<NewsletterSubscriber>? subscribers;
+
+        protected override void OnInitialized()
+    {
+        
+        if (!Auth.IsAdmin)
+        {
+            NavManager.NavigateTo("/");
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSubscribers();
+    }
+
+    private async Task LoadSubscribers()
+    {
+        subscribers = await DbContext.Subscribers
+            .OrderByDescending(s => s.SubscribedAt)
+            .ToListAsync();
+    }
+
+    private async Task DeleteSubscriber(int id)
+    {
+        var sub = await DbContext.Subscribers.FindAsync(id);
+        if (sub != null)
+        {
+            DbContext.Subscribers.Remove(sub);
+            await DbContext.SaveChangesAsync();
+            await LoadSubscribers();
+        }
+    }
+}

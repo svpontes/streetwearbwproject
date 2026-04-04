@@ -1,0 +1,262 @@
+@page "/product/{id:int}"
+@rendermode InteractiveServer
+@using StreetTshirtApp.Models
+@using Microsoft.EntityFrameworkCore
+@using StreetTshirtApp.Components.Shared
+@implements IDisposable
+@inject StreetTshirtApp.Services.CartService CartService
+@inject StreetTshirtApp.Services.AuthService AuthService
+@inject StreetTshirtApp.Data.ApplicationDbContext DbContext
+
+<PageTitle>@(product?.Name ?? "Product Details") - BluntWear</PageTitle>
+
+@if (product == null)
+{
+    <div class="text-center mt-5">
+        <p class="lead">Loading...</p>
+    </div>
+}
+else
+{
+    <div class="container mt-4 mb-5">
+        <Breadcrumbs Items="breadcrumbItems" />
+
+        <div class="row align-items-start mt-4">
+            @* Seção de Imagens *@
+            <div class="col-md-6 mb-4 mb-md-0">
+                <div class="p-5 text-center rounded-3 border-0 mb-3" style="background-color: #f8f9fa;">
+                    <img src="@currentMainImageUrl" alt="@product.Name" class="img-fluid" style="max-height: 500px; object-fit: contain; transition: opacity 0.3s;" />
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-3">
+                        <img src="@product.ImageUrl" alt="Main view" 
+                             class="img-thumbnail @(currentMainImageUrl == product.ImageUrl ? "border-dark border-2" : "border-0")" 
+                             style="cursor: pointer; background-color: #f8f9fa; aspect-ratio: 1/1; object-fit: contain;" 
+                             @onclick="() => ChangeMainImage(product.ImageUrl)" />
+                    </div>
+
+                    @if (product.SecondaryImageUrls != null)
+                    {
+                        @foreach (var imageUrl in product.SecondaryImageUrls)
+                        {
+                            <div class="col-3">
+                                <img src="@imageUrl" alt="Additional view" 
+                                     class="img-thumbnail @(currentMainImageUrl == imageUrl ? "border-dark border-2" : "border-0")" 
+                                     style="cursor: pointer; background-color: #f8f9fa; aspect-ratio: 1/1; object-fit: contain;" 
+                                     @onclick="() => ChangeMainImage(imageUrl)" />
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            @* Seção de Detalhes *@
+            <div class="col-md-6 ps-md-5 text-dark">
+                <h2 class="display-5 fw-bold mb-2 text-uppercase">@product.Name</h2>
+                
+                @* Estrelas Médias do Produto *@
+                <div class="mb-3">
+                    <StarRating Rating="averageRating" Size="1.2" ShowNumber="true" />
+                </div>
+
+                <h4 class="fw-bold mb-4" style="color: #5f5e5e;">$@((product.Price * quantity).ToString("F2"))</h4>
+                
+                <p class="lead mb-4 text-muted">@product.Description</p>
+
+                @* Seleção de Tamanho *@
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-3 @(showSizeWarning ? "text-danger" : "") text-uppercase">
+                        Size: @(showSizeWarning ? " (Required)" : "")
+                    </h5>
+                    <div class="d-flex gap-2 flex-wrap">
+                        @if (product.AvailableSizes != null)
+                        {
+                            @foreach (var size in product.AvailableSizes)
+                            {
+                                <button class="btn @(selectedSize == size ? "btn-dark" : "btn-outline-dark") px-4 py-2 fw-bold" 
+                                        @onclick="() => SelectSize(size)">
+                                    @size
+                                </button>
+                            }
+                        }
+                    </div>
+                </div>
+
+                @* Quantidade *@
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-3 text-uppercase">Quantity:</h5>
+                    <div class="input-group" style="width: 140px;">
+                        <button class="btn btn-outline-dark fw-bold" type="button" @onclick="DecreaseQuantity">-</button>
+                        <input type="text" class="form-control text-center fw-bold border-dark bg-white" value="@quantity" readonly />
+                        <button class="btn btn-outline-dark fw-bold" type="button" @onclick="IncreaseQuantity">+</button>
+                    </div>
+                </div>
+
+                @if (showSuccessMessage)
+                {
+                    <div class="alert alert-dark text-center fw-bold py-3 mb-0">✓ ADDED TO CART</div>
+                }
+                else
+                {
+                    <button class="btn btn-dark btn-lg w-100 fw-bold py-3 mt-3 shadow-sm text-uppercase" @onclick="AddToCart">
+                        Add to Cart
+                    </button>
+                }
+            </div>
+        </div>
+
+        @* --- SEÇÃO DE REVIEWS --- *@
+        <div class="mt-5 border-top pt-5">
+            <h3 class="fw-bold text-uppercase mb-4" style="letter-spacing: 2px;">Reviews</h3>
+
+            @if (AuthService?.CurrentUser != null)
+            {
+                <div class="card border-dark rounded-0 mb-5">
+                    <div class="card-body p-4 bg-light text-dark">
+                        <h6 class="fw-bold text-uppercase mb-3">Leave a review</h6>
+                        <StarRating Rating="userRating" IsReadOnly="false" OnRatingChanged="((r) => userRating = (int)r)" Size="1.5" />
+                        
+                        <textarea class="form-control mt-3 rounded-0 border-dark" 
+                                  @bind="userComment" rows="3" placeholder="Share your thoughts on the product..."></textarea>
+                        
+                        <button class="btn btn-dark rounded-0 mt-3 fw-bold px-4 text-uppercase" 
+                                @onclick="SaveReview">Submit Review</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-secondary rounded-0 small">
+                    Please <a href="/login" class="text-black fw-bold">login</a> to write a review.
+                </div>
+            }
+
+            <div class="row mt-4">
+                @if (productReviews != null && productReviews.Any())
+                {
+                    @foreach (var review in productReviews)
+                    {
+                        <div class="col-12 mb-4 text-dark">
+                            <div class="pb-3 border-bottom text-dark">
+                                <StarRating Rating="review.Rating" IsReadOnly="true" Size="0.9" />
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="fw-bold small text-uppercase">@review.UserName</span>
+                                    <span class="text-muted small">@review.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                <p class="mt-2 mb-0 small text-muted">@review.Comment</p>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center py-4">
+                        <p class="text-muted italic">No reviews yet. Be the first!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Product? product;
+    private string selectedSize = "";
+    private bool showSizeWarning = false;
+    private bool showSuccessMessage = false;
+    private string currentMainImageUrl = string.Empty;
+    private int quantity = 1;
+    private List<BreadcrumbItem> breadcrumbItems = new();
+
+    private List<ProductReview> productReviews = new();
+    private int userRating = 5;
+    private string userComment = "";
+    private double averageRating = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = MockData.GetMockProducts().FirstOrDefault(p => p.Id == Id);
+        if (product != null)
+        {
+            currentMainImageUrl = product.ImageUrl;
+            breadcrumbItems = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem { Text = "HOME", Url = "/" },
+                new BreadcrumbItem { Text = "CATALOG", Url = "/catalog" },
+                new BreadcrumbItem { Text = product.Name.ToUpper(), IsActive = true }
+            };
+
+            await LoadReviews();
+        }
+
+        CartService.OnChange += HandleCartChanged;
+    }
+
+    private async Task LoadReviews()
+    {
+        try 
+        {
+            productReviews = await DbContext.ProductReviews
+                .Where(r => r.ProductId == Id)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            if (productReviews.Any())
+                averageRating = productReviews.Average(r => r.Rating);
+            else
+                averageRating = 0;
+        }
+        catch (Exception)
+        {
+            productReviews = new List<ProductReview>();
+            averageRating = 0;
+        }
+            
+        StateHasChanged();
+    }
+
+    private async Task SaveReview()
+    {
+        if (AuthService?.CurrentUser == null || string.IsNullOrWhiteSpace(userComment)) return;
+
+        var newReview = new ProductReview
+        {
+            ProductId = Id,
+            UserEmail = AuthService.CurrentUser.Email,
+            UserName = AuthService.CurrentUser.Name,
+            Rating = userRating,
+            Comment = userComment,
+            CreatedAt = DateTime.Now
+        };
+
+        DbContext.ProductReviews.Add(newReview);
+        await DbContext.SaveChangesAsync();
+
+        userComment = "";
+        userRating = 5;
+        await LoadReviews(); 
+    }
+
+    private async void HandleCartChanged() => await InvokeAsync(StateHasChanged);
+    private void ChangeMainImage(string url) => currentMainImageUrl = url;
+    private void SelectSize(string size) { selectedSize = size; showSizeWarning = false; }
+    private void IncreaseQuantity() { if (quantity < 10) quantity++; }
+    private void DecreaseQuantity() { if (quantity > 1) quantity--; }
+
+    private async Task AddToCart()
+    {
+        if (string.IsNullOrEmpty(selectedSize)) { showSizeWarning = true; return; }
+        if (product == null) return;
+
+        CartService.AddToCart(product, selectedSize, quantity);
+        showSuccessMessage = true;
+        await Task.Delay(1000);
+        showSuccessMessage = false;
+        StateHasChanged();
+    }
+
+    public void Dispose() => CartService.OnChange -= HandleCartChanged;
+}

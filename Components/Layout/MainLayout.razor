@@ -9,7 +9,7 @@
 
         <div class="container mt-3">
             @* Renderiza o Breadcrumb apenas se não estiver na Home "/" *@
-            @if (NavManager.ToBaseRelativePath(NavManager.Uri) != "")
+            @if (NavManager.ToBaseRelativePath(NavManager.Uri).Split('?')[0] != "")
             {
                 <Breadcrumbs Items="GetBreadcrumbs()" />
             }
@@ -20,15 +20,19 @@
         </div>
     </main>
 
-    @* Chamada do componente Footer (Certifique-se que o nome do arquivo é Footer.razor) *@
+    @* Chamada do componente Footer *@
     <Footer />
 </div>
 
 @code {
     private List<BreadcrumbItem> GetBreadcrumbs()
     {
-        var relativeUri = NavManager.ToBaseRelativePath(NavManager.Uri);
-        var segments = relativeUri.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        // 1. Pegamos a URI e removemos tudo que vem após o '?' (Query String)
+        var fullRelativeUri = NavManager.ToBaseRelativePath(NavManager.Uri);
+        var cleanUri = fullRelativeUri.Split('?')[0]; 
+
+        // 2. Criamos os segmentos baseados na URI limpa
+        var segments = cleanUri.Split('/', StringSplitOptions.RemoveEmptyEntries);
         
         var items = new List<BreadcrumbItem>
         {
@@ -42,6 +46,7 @@
             var segment = segments[i];
             accumulatedPath += $"/{segment}";
             
+            // Ignora IDs numéricos no breadcrumb para manter o visual limpo
             if (int.TryParse(segment, out _)) continue;
 
             items.Add(new BreadcrumbItem
@@ -57,6 +62,7 @@
 
     protected override void OnInitialized()
     {
+        // Garante que o layout atualize os breadcrumbs sempre que a URL mudar
         NavManager.LocationChanged += (s, e) => StateHasChanged();
     }
 }

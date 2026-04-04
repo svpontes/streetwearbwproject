@@ -1,5 +1,8 @@
 @page "/admin"
 @using Microsoft.EntityFrameworkCore
+@using StreetTshirtApp.Services
+@inject AuthService Auth
+@inject NavigationManager NavManager
 @inject ApplicationDbContext DbContext
 
 <div class="container mt-5 pt-5 pb-5">
@@ -7,7 +10,8 @@
     <p class="text-secondary mb-5 small text-uppercase">Control Center // Streetwear BW Project</p>
 
     <div class="row g-4">
-        <div class="col-md-6">
+        @* Card 1: Orders *@
+        <div class="col-md-4">
             <div class="card rounded-0 border-dark h-100 shadow-sm transition-card">
                 <div class="card-body p-4 d-flex flex-column">
                     <div class="d-flex justify-content-between mb-3">
@@ -15,19 +19,20 @@
                         <span class="badge bg-success rounded-0">Online</span>
                     </div>
                     <h4 class="fw-bold text-uppercase">Orders & Sales</h4>
-                    <p class="text-secondary small">Manage customer purchases, shipping status, and financial records.</p>
+                    <p class="text-secondary small">Manage customer purchases and financial records.</p>
                     <div class="mt-auto">
                         <hr />
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="h5 m-0 fw-bold">@totalOrders</span>
-                            <a href="/admin/orders" class="btn btn-dark btn-sm rounded-0 px-4 text-uppercase fw-bold">Open Ledger</a>
+                            <a href="/admin/orders" class="btn btn-dark btn-sm rounded-0 px-3 text-uppercase fw-bold">Open Ledger</a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6">
+        @* Card 2: Messages *@
+        <div class="col-md-4">
             <div class="card rounded-0 border-dark h-100 shadow-sm transition-card">
                 <div class="card-body p-4 d-flex flex-column">
                     <div class="d-flex justify-content-between mb-3">
@@ -35,12 +40,34 @@
                         <span class="badge bg-dark rounded-0">Support</span>
                     </div>
                     <h4 class="fw-bold text-uppercase">Messages</h4>
-                    <p class="text-secondary small">Customer inquiries, custom PNG requests, and legal contact logs.</p>
+                    <p class="text-secondary small">Customer inquiries and custom PNG requests.</p>
                     <div class="mt-auto">
                         <hr />
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="h5 m-0 fw-bold">@totalMessages</span>
-                            <a href="/admin/messages" class="btn btn-dark btn-sm rounded-0 px-4 text-uppercase fw-bold">View Logs</a>
+                            <a href="/admin/messages" class="btn btn-dark btn-sm rounded-0 px-3 text-uppercase fw-bold">View Logs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Card 3: Subscribers (Newsletter) *@
+        <div class="col-md-4">
+            <div class="card rounded-0 border-dark h-100 shadow-sm transition-card bg-black text-white">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between mb-3">
+                        <i class="bi bi-people fs-2 text-white"></i>
+                        <span class="badge bg-secondary rounded-0">Growth</span>
+                    </div>
+                    <h4 class="fw-bold text-uppercase">Subscribers</h4>
+                    <p class="text-secondary small">People waiting for exclusive drops via Newsletter.</p>
+                    <div class="mt-auto">
+                        <hr class="border-secondary" />
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 m-0 fw-bold">@subscriberCount</span>
+                            @* O botão "Manage List" deve ficar AQUI *@
+                            <a href="/admin/subscribers" class="btn btn-light btn-sm rounded-0 px-3 text-uppercase fw-bold">Manage List</a>
                         </div>
                     </div>
                 </div>
@@ -48,8 +75,9 @@
         </div>
     </div>
 
+    @* Quick Stats Section *@
     <div class="mt-5 p-4 bg-light border rounded-0">
-        <h6 class="fw-bold text-uppercase x-small text-muted mb-3">Quick Stats</h6>
+        <h6 class="fw-bold text-uppercase x-small text-muted mb-3">Quick Financial Stats</h6>
         <div class="row text-center">
             <div class="col-6 border-end">
                 <span class="text-muted small d-block">Revenue</span>
@@ -68,18 +96,32 @@
     private int totalMessages;
     private decimal totalRevenue;
     private decimal avgTicket;
-
+    private int subscriberCount;
+    protected override void OnInitialized()
+    {
+        // Se o cara não estiver logado OU não for Admin, manda pra Home
+        if (!Auth.IsAdmin)
+        {
+            NavManager.NavigateTo("/");
+        }
+    }
     protected override async Task OnInitializedAsync()
     {
         totalOrders = await DbContext.Orders.CountAsync();
         totalMessages = await DbContext.ContactMessages.CountAsync();
-        totalRevenue = await DbContext.Orders.SumAsync(o => o.TotalAmount);
-        avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+        
+        if (totalOrders > 0)
+        {
+            totalRevenue = await DbContext.Orders.SumAsync(o => o.TotalAmount);
+            avgTicket = totalRevenue / totalOrders;
+        }
+
+        subscriberCount = await DbContext.Subscribers.CountAsync();
     }
 }
 
 <style>
     .x-small { font-size: 0.65rem; letter-spacing: 1.5px; }
-    .transition-card { transition: all 0.3s ease; }
-    .transition-card:hover { transform: translateY(-5px); border-width: 2px; }
+    .transition-card { transition: all 0.3s ease; border: 1px solid #dee2e6; }
+    .transition-card:hover { transform: translateY(-5px); border-color: #000; box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
 </style>

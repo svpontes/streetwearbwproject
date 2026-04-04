@@ -1,17 +1,32 @@
+@using StreetTshirtApp.Data
+@using StreetTshirtApp.Models
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Web
+@rendermode InteractiveServer
+@inject ApplicationDbContext DbContext
+
 <footer class="bg-black text-white pt-5 pb-4 mt-5 border-top border-secondary">
     <div class="container text-center text-md-start">
-        <div class="row text-center text-md-start">
+        <div class="row">
             
             @* Coluna 1: Logo e Descrição *@
-            <div class="col-md-4 col-lg-4 col-xl-3 mx-auto mt-3">
+            <div class="col-md-4 col-lg-4 col-xl-3 mx-auto mt-3 text-center text-md-start">
                 <h5 class="text-uppercase mb-4 fw-bold" style="letter-spacing: 2px;">BluntWear</h5>
                 <p class="small text-secondary">
                     Authentic streetwear for those who live the culture. High-quality prints and exclusive designs.
                 </p>
-                <div class="mt-4">
-                    <a href="#" class="text-white me-3"><i class="bi bi-instagram fs-4"></i></a>
-                    <a href="#" class="text-white me-3"><i class="bi bi-facebook fs-4"></i></a>
-                    <a href="#" class="text-white"><i class="bi bi-tiktok fs-4"></i></a>
+                
+                @* Ícones Sociais - Centralizados no Mobile *@
+                <div class="d-flex justify-content-center justify-content-md-start gap-3 mt-3 mb-4">
+                    <a href="https://www.instagram.com/bluntwear" target="_blank" rel="noopener noreferrer" class="text-white fs-4 hover-dim">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@@bluntwear" target="_blank" rel="noopener noreferrer" class="text-white fs-4 hover-dim">
+                        <i class="bi bi-tiktok"></i>
+                    </a>
+                    <a href="https://www.facebook.com/bluntwear" target="_blank" rel="noopener noreferrer" class="text-white fs-4 hover-dim">
+                        <i class="bi bi-facebook"></i>
+                    </a>
                 </div>
             </div>
 
@@ -34,10 +49,27 @@
             @* Coluna 4: Newsletter *@
             <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
                 <h6 class="text-uppercase mb-4 fw-bold small">Newsletter</h6>
-                <div class="input-group mb-3">
-                    <input type="email" class="form-control bg-transparent border-secondary text-white small" placeholder="Your email" aria-label="Email">
-                    <button class="btn btn-outline-light btn-sm" type="button">JOIN</button>
+                <div class="input-group mb-2">
+                    <input type="email" 
+                           @bind="subscriberEmail" 
+                           @bind:event="oninput"
+                           class="form-control bg-transparent border-secondary text-white small rounded-0" 
+                           placeholder="Your email" 
+                           aria-label="Email">
+                    <button class="btn btn-outline-light btn-sm rounded-0" 
+                            type="button" 
+                            @onclick="HandleSubscribe">
+                        JOIN
+                    </button>
                 </div>
+
+                @if (!string.IsNullOrEmpty(statusMessage))
+                {
+                    <p class="mt-2" style="font-size: 0.75rem; color: @(isError ? "#ff6b6b" : "#51cf66")">
+                        @statusMessage
+                    </p>
+                }
+                
                 <p class="text-secondary" style="font-size: 0.65rem;">Subscribe to get special offers and first look at new drops.</p>
             </div>
         </div>
@@ -46,22 +78,61 @@
 
         @* Direitos Autorais e Pagamentos *@
         <div class="row align-items-center">
-            <div class="col-md-7 col-lg-8">
+            <div class="col-md-7 col-lg-8 text-center text-md-start">
                 <p class="small text-secondary m-0">
                     © 2026 <strong>BLUNTWEAR</strong>. All Rights Reserved.
                 </p>
             </div>
-            <div class="col-md-5 col-lg-4">
-                <div class="text-center text-md-end mt-3 mt-md-0">
-                    <i class="bi bi-credit-card-2-back me-2 fs-5 text-secondary"></i>
-                    <i class="bi bi-paypal me-2 fs-5 text-secondary"></i>
-                    <i class="bi bi-qr-code fs-5 text-secondary"></i>
-                </div>
+            <div class="col-md-5 col-lg-4 text-center text-md-end mt-3 mt-md-0">
+                <i class="bi bi-credit-card-2-back me-2 fs-5 text-secondary"></i>
+                <i class="bi bi-paypal me-2 fs-5 text-secondary"></i>
+                <i class="bi bi-qr-code fs-5 text-secondary"></i>
             </div>
         </div>
     </div>
-    
 </footer>
+
+@code {
+    private string subscriberEmail = "";
+    private string statusMessage = "";
+    private bool isError = false;
+
+    private async Task HandleSubscribe()
+    {
+        var emailToValidate = subscriberEmail?.Trim() ?? "";
+
+        if (string.IsNullOrWhiteSpace(emailToValidate) || !emailToValidate.Contains("@") || !emailToValidate.Contains("."))
+        {
+            statusMessage = "Please enter a valid email.";
+            isError = true;
+            return;
+        }
+
+        try 
+        {
+            var exists = await DbContext.Subscribers.AnyAsync(s => s.Email == emailToValidate);
+            
+            if (exists)
+            {
+                statusMessage = "You're already on the list!";
+                isError = false;
+                return;
+            }
+
+            DbContext.Subscribers.Add(new NewsletterSubscriber { Email = emailToValidate });
+            await DbContext.SaveChangesAsync();
+
+            statusMessage = "Welcome to the family!";
+            isError = false;
+            subscriberEmail = ""; 
+        }
+        catch (Exception)
+        {
+            statusMessage = "Error joining. Try again.";
+            isError = true;
+        }
+    }
+}
 
 <style>
     .hover-white:hover {
@@ -77,5 +148,14 @@
         border-color: #fff !important;
         color: #fff !important;
         box-shadow: none !important;
+    }
+    .hover-dim {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        display: inline-block;
+    }
+    .hover-dim:hover {
+        opacity: 0.7;
+        transform: translateY(-3px);
+        color: #fff;
     }
 </style>

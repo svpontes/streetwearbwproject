@@ -1,6 +1,9 @@
 @page "/admin/messages"
 @using StreetTshirtApp.Models
 @using Microsoft.EntityFrameworkCore
+@using StreetTshirtApp.Services
+@inject AuthService Auth
+@inject NavigationManager NavManager
 @inject ApplicationDbContext DbContext
 
 <div class="container mt-5">
@@ -38,7 +41,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Busca todas as mensagens do banco ordenadas pela mais recente
+       
+        if (!Auth.IsAdmin)
+        {
+            NavManager.NavigateTo("/");
+            return; 
+        }
+
+        
         messages = await DbContext.ContactMessages
             .OrderByDescending(m => m.CreatedAt)
             .ToListAsync();

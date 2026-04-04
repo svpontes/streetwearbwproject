@@ -54,6 +54,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pbk9yZGVycy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/cse325/streetwearbwproject/Components/Pages/AdminSubscriber.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblN1YnNjcmliZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/cse325/streetwearbwproject/Components/Pages/Cart.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDYXJ0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
@@ -90,8 +94,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPcmRlclN1Y2Nlc3MucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/cse325/streetwearbwproject/Components/Pages/ProductDetails.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcm9kdWN0RGV0YWlscy5yYXpvcg==
+[F:/cse325/streetwearbwproject/Components/Pages/ProductDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcm9kdWN0RGV0YWlsLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/cse325/streetwearbwproject/Components/Pages/Profile.razor]
@@ -102,8 +106,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZWdpc3Rlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/cse325/streetwearbwproject/Components/Pages/UserProfile.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVc2VyUHJvZmlsZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/cse325/streetwearbwproject/Components/Routes.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/cse325/streetwearbwproject/Components/Shared/ProductQuickView.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcUHJvZHVjdFF1aWNrVmlldy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/cse325/streetwearbwproject/Components/Shared/StarRating.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcU3RhclJhdGluZy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/cse325/streetwearbwproject/Components/_Imports.razor]

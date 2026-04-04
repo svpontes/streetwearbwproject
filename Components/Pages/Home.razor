@@ -1,5 +1,7 @@
 ﻿@page "/"
+@rendermode InteractiveServer
 @using StreetTshirtApp.Models
+@using StreetTshirtApp.Components.Shared
 
 <PageTitle>Street T-Shirt - Official Store</PageTitle>
 
@@ -37,7 +39,9 @@
                         
                         <div class="d-flex justify-content-between align-items-center mt-auto">
                             <span class="fs-5 fw-bold" style="color: #747474;">$@product.Price.ToString("0.00")</span>
-                            <a href="/product/@product.Id" class="btn btn-dark btn-sm fw-bold">Add</a>
+                            <button class="btn btn-dark btn-sm fw-bold rounded-0 px-3" @onclick="() => OpenQuickView(product)">
+                                ADD to Card
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -45,13 +49,34 @@
         }
     </div>
 </div>
+<ProductQuickView Show="isPanelOpen" Product="selectedProduct" OnClose="HandleClose" />
 
 @code {
     private List<Product> featuredProducts = new();
+    
+    // Variáveis de controle para o painel lateral
+    private bool isPanelOpen = false;
+    private Product? selectedProduct;
 
     protected override void OnInitialized()
     {
-        // Carrega todos os produtos reais do nosso novo MockData
+        // Carrega os produtos do MockData
         featuredProducts = MockData.GetMockProducts();
+    }
+
+    // Função para abrir o painel
+    private void OpenQuickView(Product product)
+    {
+        selectedProduct = product;
+        isPanelOpen = true;
+        StateHasChanged();
+    }
+
+    // Função para fechar o painel
+    private void HandleClose()
+    {
+        isPanelOpen = false;
+        selectedProduct = null;
+        StateHasChanged();
     }
 }

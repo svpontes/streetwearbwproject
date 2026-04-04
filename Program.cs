@@ -5,12 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using StreetTshirtApp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton<AuthService>();
 
-// --- 1. REGISTRO DE SERVIÇOS (DI) ---
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Registramos os serviços necessários para a BluntWear
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<AuthService>();
 
@@ -19,7 +18,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
-// --- 2. CONFIGURAÇÃO DO PIPELINE (MIDDLEWARES) ---
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -31,9 +29,7 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 app.MapStaticAssets();
 
-// IMPORTANTE: O mapeamento deve vir ANTES do app.Run()
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// O Run deve ser a ÚLTIMA instrução de nível superior
 app.Run();

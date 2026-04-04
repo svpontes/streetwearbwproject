@@ -1,0 +1,109 @@
+@using StreetTshirtApp.Models
+@inject StreetTshirtApp.Services.CartService CartService
+
+<div class="offcanvas offcanvas-end @(Show ? "show" : "")" tabindex="-1" 
+     style="visibility: @(Show ? "visible" : "hidden"); width: 450px; border-left: 1px solid #ddd;">
+    
+    <div class="offcanvas-header border-bottom">
+        <h5 class="fw-bold text-uppercase mb-0">Quick Add</h5>
+        <button type="button" class="btn-close text-reset" @onclick="Close"></button>
+    </div>
+
+    <div class="offcanvas-body">
+        @if (Product != null)
+        {
+            <div class="text-center mb-4 bg-light p-3">
+                <img src="@Product.ImageUrl" class="img-fluid" style="max-height: 300px; object-fit: contain;" />
+            </div>
+
+            <h4 class="fw-bold text-uppercase">@Product.Name</h4>
+            <h5 class="text-secondary mb-3">@Product.Price.ToString("C")</h5>
+            <p class="small text-muted">@Product.Description</p>
+
+            <hr />
+
+            @* Seleção de Tamanho *@
+            <div class="mb-4">
+                <label class="fw-bold small text-uppercase mb-2">Select Size:</label>
+                <div class="d-flex gap-2 flex-wrap">
+                    @foreach (var size in Product.AvailableSizes)
+                    {
+                        <button class="btn @(selectedSize == size ? "btn-dark" : "btn-outline-dark") btn-sm px-3 fw-bold rounded-0" 
+                                @onclick="() => selectedSize = size">
+                            @size
+                        </button>
+                    }
+                </div>
+                @if (showWarning) { <small class="text-danger d-block mt-1">Please select a size</small> }
+            </div>
+
+            @* Quantidade *@
+            <div class="mb-4">
+                <label class="fw-bold small text-uppercase mb-2">Quantity:</label>
+                <div class="input-group" style="width: 120px;">
+                    <button class="btn btn-outline-dark btn-sm" @onclick="() => { if(qty > 1) qty--; }">-</button>
+                    <input type="text" class="form-control form-control-sm text-center border-dark" value="@qty" readonly />
+                    <button class="btn btn-outline-dark btn-sm" @onclick="() => qty++">+</button>
+                </div>
+            </div>
+
+            <button class="btn btn-dark w-100 py-3 fw-bold text-uppercase rounded-0 shadow-sm" @onclick="HandleAdd">
+                Add to Bag — @((Product.Price * qty).ToString("C"))
+            </button>
+        }
+    </div>
+</div>
+
+@if (Show)
+{
+    <div class="offcanvas-backdrop fade show" @onclick="Close"></div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public Product? Product { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private string selectedSize = "";
+    private int qty = 1;
+    private bool showWarning = false;
+
+    private void Close() { 
+        selectedSize = ""; 
+        qty = 1; 
+        showWarning = false;
+        OnClose.InvokeAsync(); 
+    }
+
+    private void HandleAdd() {
+        if (string.IsNullOrEmpty(selectedSize)) { showWarning = true; return; }
+        if (Product != null) {
+            CartService.AddToCart(Product, selectedSize, qty);
+            Close();
+        }
+    }
+
+    private List<Product> products = new();
+    private bool isPanelOpen = false;
+    private Product? selectedProduct;
+
+    protected override void OnInitialized()
+    {
+        products = MockData.GetMockProducts();
+    }
+
+    private void OpenQuickView(Product product)
+    {
+        selectedProduct = product;
+        isPanelOpen = true;
+        StateHasChanged();
+    }
+
+    private void HandleClose()
+    {
+        isPanelOpen = false;
+        selectedProduct = null;
+        StateHasChanged();
+    }
+
+}

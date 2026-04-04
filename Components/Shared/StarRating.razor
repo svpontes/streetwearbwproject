@@ -1,0 +1,30 @@
+<div class="d-flex align-items-center gap-1">
+    @for (int i = 1; i <= 5; i++)
+    {
+        int starIndex = i;
+        <i class="bi @(starIndex <= Rating ? "bi-star-fill" : "bi-star")" 
+           style="cursor: @(IsReadOnly ? "default" : "pointer"); color: @(starIndex <= Rating ? "#FFD700" : "#ccc"); font-size: @(Size)rem;"
+           @onclick="() => HandleClick(starIndex)"></i>
+    }
+    @if (ShowNumber)
+    {
+        <span class="ms-2 small text-muted">(@Rating.ToString("0.0"))</span>
+    }
+</div>
+
+@code {
+    [Parameter] public double Rating { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; } = true;
+    [Parameter] public double Size { get; set; } = 1.2;
+    [Parameter] public bool ShowNumber { get; set; } = false;
+    [Parameter] public EventCallback<int> OnRatingChanged { get; set; }
+
+    private async Task HandleClick(int newRating)
+    {
+        if (!IsReadOnly)
+        {
+            Rating = newRating;
+            await OnRatingChanged.InvokeAsync(newRating);
+        }
+    }
+}

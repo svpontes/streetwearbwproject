@@ -42,7 +42,7 @@
     {
         errorMessage = "";
 
-        // O erro CS4008 some aqui porque agora o Login retorna Task<bool>
+        
         bool success = await AuthService.Login(email, password);
 
         if (success)

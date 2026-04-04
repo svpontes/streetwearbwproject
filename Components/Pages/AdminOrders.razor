@@ -2,36 +2,46 @@
 @using StreetTshirtApp.Models
 @using Microsoft.EntityFrameworkCore
 @using System.Text.Json
+@using StreetTshirtApp.Services
+@inject AuthService Auth
+@inject NavigationManager NavManager
 @inject ApplicationDbContext DbContext
 
 <div class="container mt-5 pt-5 pb-5">
-    <h2 class="fw-bold text-uppercase mb-4" style="letter-spacing: 2px;">Sales Ledger</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-uppercase m-0" style="letter-spacing: 2px;">Sales Ledger</h2>
+        <a href="/admin" class="btn btn-outline-dark btn-sm rounded-0">BACK TO DASHBOARD</a>
+    </div>
 
     @if (orders == null || !orders.Any())
     {
-        <p class="text-muted">No orders found.</p>
+        <div class="alert alert-light border-dark rounded-0 text-center py-5">
+            <p class="text-muted m-0">NO ORDERS FOUND IN THE LEDGER.</p>
+        </div>
     }
     else
     {
         @foreach (var order in orders)
         {
             <div class="card rounded-0 border-dark mb-4 shadow-sm">
-                <div class="card-header bg-dark text-white rounded-0 d-flex justify-content-between">
-                    <span class="fw-bold">ORDER #@order.Id.ToString("D5")</span>
-                    <span>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                <div class="card-header bg-dark text-white rounded-0 d-flex justify-content-between align-items-center py-3">
+                    <span class="fw-bold" style="letter-spacing: 1px;">ORDER #@order.Id.ToString("D5")</span>
+                    <span class="small">@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
                 </div>
                 <div class="card-body p-4">
                     <div class="row">
+                        @* Coluna do Cliente *@
                         <div class="col-md-6 border-end">
-                            <h6 class="fw-bold text-uppercase small text-muted">Customer Details</h6>
+                            <h6 class="fw-bold text-uppercase x-small text-muted mb-3" style="letter-spacing: 1px;">Customer Details</h6>
                             <p class="mb-1"><strong>@order.CustomerName</strong></p>
-                            <p class="mb-1 small">@order.CustomerEmail</p>
-                            <p class="small text-secondary">@order.ShippingAddress</p>
+                            <p class="mb-1 small text-primary">@order.CustomerEmail</p>
+                            <p class="small text-secondary mt-2">@order.ShippingAddress</p>
                         </div>
-                        <div class="col-md-6 px-md-4">
-                            <h6 class="fw-bold text-uppercase small text-muted mb-3">Items Purchased</h6>
+
+                        @* Coluna dos Itens *@
+                        <div class="col-md-6 px-md-4 mt-4 mt-md-0">
+                            <h6 class="fw-bold text-uppercase x-small text-muted mb-3" style="letter-spacing: 1px;">Items Purchased</h6>
                             
-                            @* Lógica para exibir os itens *@
                             <ul class="list-unstyled">
                                 @try 
                                 {
@@ -44,8 +54,8 @@
                                             {
                                                 <li class="d-flex justify-content-between border-bottom pb-2 mb-2 small">
                                                     <span>
-                                                        <span class="fw-bold">@item.Quantity x</span> @item.Name 
-                                                        <span class="badge bg-light text-dark border ms-1">@item.Size</span>
+                                                        <span class="fw-bold text-dark">@item.Quantity x</span> @item.Name 
+                                                        <span class="badge bg-dark rounded-0 ms-1" style="font-size: 0.6rem;">@item.Size</span>
                                                     </span>
                                                     <span class="fw-bold">@((item.PriceAtPurchase * item.Quantity).ToString("C"))</span>
                                                 </li>
@@ -64,7 +74,7 @@
                             </ul>
 
                             <div class="d-flex justify-content-between mt-3 pt-2 border-top">
-                                <span class="fw-bold">TOTAL:</span>
+                                <span class="fw-bold text-uppercase small">Grand Total:</span>
                                 <span class="h5 fw-bold text-dark">@order.TotalAmount.ToString("C")</span>
                             </div>
                         </div>
@@ -78,7 +88,6 @@
 @code {
     private List<Order> orders = new();
 
-    // Classe auxiliar para mapear o JSON (deve ter os mesmos nomes usados no Checkout)
     public class OrderItemSummary
     {
         public string Name { get; set; } = string.Empty;
@@ -89,8 +98,20 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // 1. Verificação de Segurança Prioritária
+        if (!Auth.IsAdmin)
+        {
+            NavManager.NavigateTo("/");
+            return; // Encerra aqui para não buscar dados do banco
+        }
+
+        // 2. Busca de dados apenas para Admin logado
         orders = await DbContext.Orders
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
     }
 }
+
+<style>
+    .x-small { font-size: 0.65rem; }
+</style>

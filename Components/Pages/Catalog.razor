@@ -1,5 +1,9 @@
 @page "/catalog"
 @using StreetTshirtApp.Models
+@using StreetTshirtApp.Components
+@rendermode InteractiveServer
+@using StreetTshirtApp.Components.Shared
+
 
 <PageTitle>Catalog - Street T-Shirt</PageTitle>
 
@@ -34,21 +38,36 @@
                         
                         <div class="d-flex justify-content-between align-items-center mt-auto">
                             <span class="fs-5 fw-bold" style="color: #747474;">$@product.Price.ToString("0.00")</span>
-                            <a href="/product/@product.Id" class="btn btn-dark btn-sm fw-bold">Add to Cart</a>
+                            <button class="btn btn-dark btn-sm fw-bold rounded-0" @onclick="() => OpenQuickView(product)">
+                                     ADD +
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+            
         }
     </div>
 </div>
+
+<ProductQuickView Show="isPanelOpen" Product="selectedProduct" OnClose="() => isPanelOpen = false" />
 
 @code {
     private List<Product> products = new();
 
     protected override void OnInitialized()
     {
-        // Chama a nossa classe MockData para preencher a lista de produtos ao carregar a página
+        
         products = MockData.GetMockProducts();
+    }
+    private bool isPanelOpen = false;
+    private Product? selectedProduct;
+
+    private void OpenQuickView(Product product)
+    {
+        
+        selectedProduct = product;
+        isPanelOpen = true;
+        StateHasChanged();
     }
 }

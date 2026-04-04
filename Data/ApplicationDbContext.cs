@@ -13,5 +13,10 @@ namespace StreetTshirtApp.Data
         
         // Aproveite e já adicione a tabela de Usuários para o Login funcionar
         public DbSet<User> Users { get; set; }
+        
+        public DbSet<NewsletterSubscriber> Subscribers { get; set; }
+
+        public DbSet<ProductReview> ProductReviews { get; set; }
     }
+    
 }
