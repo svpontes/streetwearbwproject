@@ -122,6 +122,8 @@
             animation-delay: -0.5s;
         }
 
+
+
 @keyframes components-rejoining-animation {
     0% {
         top: 40px;

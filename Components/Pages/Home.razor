@@ -2,17 +2,28 @@
 @rendermode InteractiveServer
 @using StreetTshirtApp.Models
 @using StreetTshirtApp.Components.Shared
+@using System.Timers
+@implements IDisposable
 
 <PageTitle>Street T-Shirt - Official Store</PageTitle>
 
-<div class="position-relative overflow-hidden p-0 m-0 text-center bg-dark w-100">
-    <img src="/images/banner-principal.png" alt="Street T-Shirt Collection Banner" class="w-100 img-fluid" style="height: 600px; object-fit: cover;" />
-    <div class="col-md-5 p-lg-5 mx-auto my-5 position-absolute top-50 start-50 translate-middle text-white" style="background-color: rgba(0,0,0,0.5); border-radius: 10px;">
-        <h1 class="display-4 fw-bold">Urban Exclusive</h1>
-        <p class="lead fw-normal">Check out our new collection of exclusive HD prints.</p>
-        <a class="btn btn-ligth btn-lg rounded-2 fw-bold custom-bw-btn" href="#catalog">Shop the Collection</a>
+
+
+<section class="position-relative overflow-hidden p-0 m-0 text-center bg-dark w-100" style="height: 600px;">
+    @foreach (var img in bannerImages)
+    {
+        <div class="banner-slide @(currentImageIndex == bannerImages.IndexOf(img) ? "active" : "")"
+             style="background-image: url('@img');">
+        </div>
+    }
+
+    <div class="col-md-5 p-lg-5 mx-auto my-5 position-absolute top-50 start-50 translate-middle text-white" 
+         style="background-color: rgba(0,0,0,0.2); border-radius: 0; z-index: 10;">
+        <h1 class="display-4 fw-bold text-uppercase" style="letter-spacing: 3px;">Urban Exclusive</h1>
+        <p class="lead fw-normal mb-4">Check out our new collection of exclusive HD prints.</p>
+        <a class="btn btn-light btn-lg rounded-2 fw-bold custom-bw-btn" href="#catalog">Shop the Collection</a>
     </div>
-</div>
+</section>
 
 <div id="catalog" class="container mt-5 mb-5">
     <h2 class="mb-4 fw-bold text-center">Featured Designs</h2>
@@ -30,7 +41,6 @@
                     </a>
                     
                     <div class="card-body d-flex flex-column text-dark">
-                        
                         <a href="/product/@product.Id" class="text-decoration-none text-dark">
                             <h5 class="card-title fw-bold">@product.Name</h5>
                         </a>
@@ -40,7 +50,7 @@
                         <div class="d-flex justify-content-between align-items-center mt-auto">
                             <span class="fs-5 fw-bold" style="color: #747474;">$@product.Price.ToString("0.00")</span>
                             <button class="btn btn-dark btn-sm fw-bold rounded-0 px-3" @onclick="() => OpenQuickView(product)">
-                                ADD to Card
+                                ADD to Cart
                             </button>
                         </div>
                     </div>
@@ -49,22 +59,41 @@
         }
     </div>
 </div>
+
 <ProductQuickView Show="isPanelOpen" Product="selectedProduct" OnClose="HandleClose" />
 
 @code {
     private List<Product> featuredProducts = new();
-    
-    // Variáveis de controle para o painel lateral
     private bool isPanelOpen = false;
     private Product? selectedProduct;
 
+    private int currentImageIndex = 0;
+    private List<string> bannerImages = new() 
+    { 
+        "/images/banner-principal.png", 
+        "/images/bkg-banner.png" 
+    };
+
+    private Timer? timer;
+
     protected override void OnInitialized()
     {
-        // Carrega os produtos do MockData
+        // 1. Carrega os produtos (Não esqueça desta linha!)
         featuredProducts = MockData.GetMockProducts();
+
+        // 2. Configura o Timer do Banner
+        timer = new Timer(5000);
+        timer.Elapsed += (sender, e) => ChangeImage();
+        timer.AutoReset = true;
+        timer.Enabled = true;
     }
 
-    // Função para abrir o painel
+    private void ChangeImage()
+    {
+        currentImageIndex = (currentImageIndex + 1) % bannerImages.Count;
+        InvokeAsync(StateHasChanged);
+    }
+
     private void OpenQuickView(Product product)
     {
         selectedProduct = product;
@@ -72,11 +101,15 @@
         StateHasChanged();
     }
 
-    // Função para fechar o painel
     private void HandleClose()
     {
         isPanelOpen = false;
         selectedProduct = null;
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
     }
 }

@@ -97,6 +97,8 @@ main[b-bp20w2z7l5] {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+
 /* /Components/Layout/NavMenu.razor.rz.scp.css */
 .navbar-toggler[b-ng97g2jg7k] {
     appearance: none;
@@ -188,6 +190,7 @@ main[b-bp20w2z7l5] {
 .navbar-toggler:checked ~ .nav-scrollable[b-ng97g2jg7k] {
     display: block;
 }
+
 
 @media (min-width: 641px) {
     .navbar-toggler[b-ng97g2jg7k] {
@@ -327,6 +330,8 @@ main[b-bp20w2z7l5] {
         .components-rejoining-animation div:nth-child(2)[b-d8uqe6x3js] {
             animation-delay: -0.5s;
         }
+
+
 
 @keyframes components-rejoining-animation-b-d8uqe6x3js {
     0% {
