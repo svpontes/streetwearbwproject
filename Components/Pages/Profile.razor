@@ -15,26 +15,35 @@ else
 {
     <div class="container mt-5 mb-5">
         <div class="row">
-            @* Coluna da Esquerda: Dados do Usuário *@
+            
             <div class="col-md-4 mb-4">
-                <div class="card bg-black text-white rounded-0 border-0 p-4 shadow">
+                <div class="card bg-white text-dark rounded-0 border p-4 shadow-sm">
                     <div class="text-center mb-4">
                         <i class="bi bi-person-circle display-1"></i>
                     </div>
-                    <h3 class="fw-bold text-center mb-1">@AuthService.CurrentUser.Name</h3>
+                    <h3 class="fw-bold text-center mb-1 text-uppercase" style="letter-spacing: 2px;">@AuthService.CurrentUser.Name</h3>
                     <p class="text-secondary text-center small mb-4">@AuthService.CurrentUser.Email</p>
                     
-                    <hr class="border-secondary" />
+                    <div class="user-info small mb-4">
+                        <p class="mb-1"><strong>PHONE</strong><br />@AuthService.CurrentUser.Phone</p>
+                        <p class="mb-0"><strong>ADDRESS</strong><br />@AuthService.CurrentUser.Address</p>
+                    </div>
+
+                    <hr />
                     
-                    <button class="btn btn-outline-danger btn-sm w-100 rounded-0 fw-bold" @onclick="Logout">
-                        LOGOUT
-                    </button>
+                    <button class="btn btn-dark btn-sm w-100 rounded-0 fw-bold mb-2">UPDATE PROFILE</button>
+                    <button class="btn btn-outline-danger btn-sm w-100 rounded-0 fw-bold" @onclick="Logout">LOGOUT</button>
                 </div>
             </div>
 
-            @* Coluna da Direita: Histórico de Pedidos *@
+            
             <div class="col-md-8">
                 <h2 class="fw-bold mb-4" style="letter-spacing: 2px;">ORDER HISTORY</h2>
+                <div class="alert alert-info small">
+    <strong>Debug Info:</strong><br />
+    Pedidos encontrados: @AuthService.CurrentUser.OrderHistory.Count <br />
+    JSON do último pedido: @AuthService.CurrentUser.OrderHistory.LastOrDefault()?.SerializedItems
+</div>
                 
                 @if (AuthService.CurrentUser.OrderHistory == null || !AuthService.CurrentUser.OrderHistory.Any())
                 {
@@ -45,36 +54,62 @@ else
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table table-hover border">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th class="small">ORDER ID</th>
-                                    <th class="small">DATE</th>
-                                    <th class="small">TOTAL</th>
-                                    <th class="small">STATUS</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var order in AuthService.CurrentUser.OrderHistory)
-                                {
-                                    <tr>
-                                        <td class="fw-bold">#@order.Id.ToString("D5")</td>
-                                        <td class="small">@order.OrderDate.ToShortDateString()</td>
-                                        <td class="fw-bold">$@order.TotalAmount.ToString("F2")</td>
-                                        <td>
-                                            <span class="badge bg-dark rounded-0 px-3">@order.Status.ToUpper()</span>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    @foreach (var order in AuthService.CurrentUser.OrderHistory)
+                    {
+                        <div class="order-container mb-4 border bg-white shadow-sm">
+                            <div class="order-header p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+                                <h6 class="fw-bold m-0 text-uppercase">Order #@order.Id.ToString("D5")</h6>
+                                <span class="badge bg-dark rounded-0">@order.Status.ToUpper()</span>
+                            </div>
+                            
+                            <div class="order-body p-3">
+                                <div class="row mb-3">
+                                    <div class="col-6 small text-muted">
+                                        Date: @order.OrderDate.ToShortDateString()
+                                    </div>
+                                    <div class="col-6 text-end fw-bold">
+                                        Total: @order.TotalAmount.ToString("C")
+                                    </div>
+                                </div>
+
+                               
+                                <div class="items-list">
+                                    @foreach (var item in order.OrderItems)
+                                    {
+                                        <div class="d-flex align-items-center p-2 mb-2 border-bottom">
+                                            <img src="@item.ImageUrl" alt="@item.ProductName" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;" class="me-3 border" />
+                                            
+                                            <div class="flex-grow-1">
+                                                <span class="d-block fw-bold small text-uppercase">@item.ProductName</span>
+                                                <span class="x-small text-muted">Size: @item.Size | Qty: @item.Quantity</span>
+                                            </div>
+                                            
+                                            <div class="text-end">
+                                                <span class="small fw-bold">@((item.Price * item.Quantity).ToString("C"))</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
                 }
             </div>
         </div>
     </div>
 }
+
+<style>
+    .x-small {
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+    }
+    .order-container:hover {
+        border-color: #000 !important;
+        transition: 0.3s;
+    }
+</style>
 
 @code {
     private void Logout()

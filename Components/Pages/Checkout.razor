@@ -127,7 +127,7 @@
                             
                             <div class="me-3" style="width: 60px; height: 60px; background-color: #fff;">
                                 <img src="@item.Product.ImageUrl" alt="@item.Product.Name" 
-                                    class="img-fluid" style="object-fit: contain; width: 100%; height: 100%;" />
+                                    class="img-fluid" style="object-fit: cover; width: 100%; height: 100%;" />
                             </div>
 
                             <div class="flex-grow-1">
@@ -206,41 +206,52 @@
         }
     }
 
-    private async Task HandleCheckout()
+   private async Task HandleCheckout()
+{
+    try 
     {
-        try 
+        // 1. Crie a lista usando a classe OrderItem (que possui a ImageUrl)
+        var orderItems = CartService.CartItems.Select(i => new OrderItem 
         {
-            var itemsToSerialize = CartService.CartItems.Select(i => new 
-            {
-                Name = i.Product.Name,
-                Size = i.Size,
-                Quantity = i.Quantity,
-                PriceAtPurchase = i.Product.Price
-            }).ToList();
+            ProductId = i.Product.Id,
+            ProductName = i.Product.Name,
+            ImageUrl = i.Product.ImageUrl, // AGORA A IMAGEM SERÁ SALVA!
+            Size = i.Size,
+            Quantity = i.Quantity,
+            Price = i.Product.Price
+        }).ToList();
 
-            var newOrder = new Order
-            {
-                CustomerName = $"{checkoutModel.FirstName} {checkoutModel.LastName}",
-                CustomerEmail = checkoutModel.Email,
-                // Endereço completo concatenado para o banco
-                ShippingAddress = $"{checkoutModel.Address}, {checkoutModel.City}, {checkoutModel.Country} - {checkoutModel.PostalCode}",
-                TotalAmount = CartService.TotalPrice,
-                OrderDate = DateTime.Now,
-                Status = "Processing",
-                SerializedItems = JsonSerializer.Serialize(itemsToSerialize)
-            };
-
-            DbContext.Orders.Add(newOrder);
-            await DbContext.SaveChangesAsync();
-
-            CartService.ClearCart();
-            NavManager.NavigateTo("/order-success");
-        }
-        catch (Exception ex)
+        var newOrder = new Order
         {
-            Console.WriteLine($"Erro ao processar checkout: {ex.Message}");
+            CustomerName = $"{checkoutModel.FirstName} {checkoutModel.LastName}",
+            CustomerEmail = checkoutModel.Email,
+            ShippingAddress = $"{checkoutModel.Address}, {checkoutModel.City}, {checkoutModel.Country} - {checkoutModel.PostalCode}",
+            TotalAmount = CartService.TotalPrice,
+            OrderDate = DateTime.Now,
+            Status = "Processing",
+            
+            
+        };
+
+        newOrder.OrderItems = orderItems;
+        
+        DbContext.Orders.Add(newOrder);
+        await DbContext.SaveChangesAsync();
+
+        // 3. Atualize o histórico do usuário na memória para refletir no Perfil imediatamente
+        if (AuthService.CurrentUser != null)
+        {
+            AuthService.CurrentUser.OrderHistory.Add(newOrder);
         }
+
+        CartService.ClearCart();
+        NavManager.NavigateTo("/order-success");
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erro ao processar checkout: {ex.Message}");
+    }
+}
 
     public class CheckoutModel
     {

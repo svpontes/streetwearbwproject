@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("StreetTshirtApp.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8e850dd4f435b36473931b111ba5a215f7996eb9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+38d7b209fcc1b4c6e5005b297a814034a80a5cc4")]
 [assembly: System.Reflection.AssemblyProductAttribute("StreetTshirtApp.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("StreetTshirtApp.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

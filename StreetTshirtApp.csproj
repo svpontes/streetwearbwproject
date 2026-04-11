@@ -13,10 +13,13 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="StreetTshirtApp.Tests\**\*.cs" />
+    <Content Remove="StreetTshirtApp.Tests\**\*" />
     <EmbeddedResource Remove="StreetTshirtApp.Tests\**\*" />
     <None Remove="StreetTshirtApp.Tests\**\*" />
-    
   </ItemGroup>
 
 </Project>

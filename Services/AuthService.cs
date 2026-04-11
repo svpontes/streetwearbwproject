@@ -27,6 +27,7 @@ namespace StreetTshirtApp.Services
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             var user = await context.Users
+                .Include(u => u.OrderHistory) 
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
 
             if (user != null)
