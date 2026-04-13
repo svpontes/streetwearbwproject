@@ -1,16 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using StreetTshirtApp.Data;
 using StreetTshirtApp.Models;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace StreetTshirtApp.Services
 {
     public class AuthService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        
-        // Agora o compilador encontrará a classe User em StreetTshirtApp.Models
+
         public User? CurrentUser { get; private set; }
+
         public event Action? OnChange;
 
         public bool IsLoggedIn => CurrentUser != null;
@@ -27,16 +27,15 @@ namespace StreetTshirtApp.Services
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             var user = await context.Users
-                .Include(u => u.OrderHistory) 
+                .Include(u => u.OrderHistory)
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
 
-            if (user != null)
-            {
-                CurrentUser = user;
-                NotifyStateChanged();
-                return true;
-            }
-            return false;
+            if (user is null)
+                return false;
+
+            CurrentUser = user;
+            NotifyStateChanged();
+            return true;
         }
 
         public void Logout()
@@ -45,6 +44,9 @@ namespace StreetTshirtApp.Services
             NotifyStateChanged();
         }
 
-        private void NotifyStateChanged() => OnChange?.Invoke();
+        private void NotifyStateChanged()
+        {
+            OnChange?.Invoke();
+        }
     }
 }

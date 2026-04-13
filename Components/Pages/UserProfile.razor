@@ -19,32 +19,31 @@
     else
     {
         <div class="row g-5">
-            @* Coluna Esquerda: Dados do Usuário *@
             <div class="col-lg-4">
                 <div class="card border-dark rounded-0 shadow-sm">
                     <div class="card-body p-4">
                         @if (!isEditing)
                         {
-                            @* MODO VISUALIZAÇÃO *@
                             <div class="text-center mb-4">
                                 <div class="bg-black text-white d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px;">
                                     <i class="bi bi-person fs-1"></i>
                                 </div>
-                                <h5 class="fw-bold text-uppercase m-0">@AuthService.CurrentUser.Name</h5>
-                                <p class="text-muted small mb-0">@AuthService.CurrentUser.Email</p>
+                                <h5 class="fw-bold text-uppercase m-0">@AuthService.CurrentUser?.Name</h5>
+                                <p class="text-muted small mb-0">@AuthService.CurrentUser?.Email</p>
                             </div>
-                            
+
                             <hr />
 
                             <div class="mb-3">
                                 <label class="x-small text-muted text-uppercase fw-bold">Phone</label>
-                                <p class="m-0 small">@(AuthService.CurrentUser.Phone ?? "Not defined")</p>
+                                <p class="m-0 small text-secondary">
+                                    @($"{AuthService.CurrentUser?.ZipCode} {AuthService.CurrentUser?.City}".Trim())</p>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label class="x-small text-muted text-uppercase fw-bold">Address</label>
-                                <p class="m-0 small">@(AuthService.CurrentUser.Address ?? "Not defined")</p>
-                                <p class="m-0 small text-secondary">@AuthService.CurrentUser.ZipCode @AuthService.CurrentUser.City</p>
+                                <p class="m-0 small">@(AuthService.CurrentUser?.Address ?? "Not defined")</p>
+                                <p class="m-0 small text-secondary">@AuthService.CurrentUser?.ZipCode @AuthService.CurrentUser?.City</p>
                             </div>
 
                             <button class="btn btn-dark btn-sm w-100 rounded-0 mt-3 fw-bold" @onclick="ToggleEdit">
@@ -53,9 +52,8 @@
                         }
                         else
                         {
-                            @* MODO EDIÇÃO COMPLETO *@
                             <h6 class="fw-bold text-uppercase mb-4" style="letter-spacing: 1px;">Edit Personal Info</h6>
-                            
+
                             <div class="mb-3">
                                 <label class="x-small text-muted text-uppercase fw-bold">Full Name</label>
                                 <input type="text" class="form-control rounded-0 border-dark small" @bind="editName" />
@@ -84,7 +82,6 @@
                                     <label class="x-small text-muted text-uppercase fw-bold">Country</label>
                                     <input type="text" class="form-control rounded-0 border-dark small" @bind="editCountry" />
                                 </div>
-
                             </div>
 
                             <div class="d-flex gap-2">
@@ -101,9 +98,9 @@
                 </div>
             </div>
 
-            @* Coluna Direita: Histórico de Pedidos *@
             <div class="col-lg-8">
                 <h4 class="fw-bold text-uppercase mb-4" style="letter-spacing: 2px;">Order History</h4>
+
                 @if (userOrders == null || !userOrders.Any())
                 {
                     <div class="p-5 border text-center bg-light">
@@ -116,19 +113,44 @@
                 {
                     @foreach (var order in userOrders)
                     {
-                        @* Renderização dos cards de pedidos que você já tem... *@
                         <div class="card border-dark rounded-0 mb-4">
-                             <div class="card-header bg-white py-3">
-                                 <span class="fw-bold">ORDER #@order.Id.ToString("D5")</span>
-                             </div>
-                             <div class="card-body">
-                                 <p class="small">Total: @order.TotalAmount.ToString("C")</p>
-                             </div>
+                            <div class="card-header bg-white py-3 d-flex justify-content-between">
+                                <span class="fw-bold">ORDER #@order.Id.ToString("D5")</span>
+                                <span>Total: @order.TotalAmount.ToString("C")</span>
+                            </div>
+
+                            <div class="card-body">
+                                @if (order.OrderItems != null && order.OrderItems.Any())
+                                {
+                                    @foreach (var item in order.OrderItems)
+                                    {
+                                        <div class="d-flex align-items-center mt-3  pb-3">
+                                            <img src="@item.ImageUrl"
+                                                 alt="@item.ProductName"
+                                                 style="width: 80px; height: 80px; object-fit: cover;"
+                                                 class="me-3"
+                                                 onerror="this.src='/images/placeholder.png';" />
+
+                                            <div class="flex-grow-1">
+                                                <p class="mb-0 fw-bold text-uppercase">@item.ProductName</p>
+                                                <small class="text-muted d-block">
+                                                    SIZE: @item.Size | QTY: @item.Quantity
+                                                </small>
+                                                <span class="fw-bold small">@item.Price.ToString("C")</span>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="text-muted small mb-0">Order details are not available.</p>
+                                }
+                            </div>
                         </div>
                     }
                 }
             </div>
-        </div> @* Fim da Row *@
+        </div>
     }
 </div>
 
@@ -148,25 +170,38 @@
         if (AuthService.CurrentUser != null)
         {
             SyncFields();
-            
+
             userOrders = await DbContext.Orders
-                .Where(o => o.CustomerEmail == AuthService.CurrentUser.Email)
+                .Where(o => o.CustomerEmail == AuthService.CurrentUser!.Email)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
+
+            foreach (var order in userOrders)
+            {
+                if (!string.IsNullOrWhiteSpace(order.SerializedItems))
+                {
+                    order.OrderItems = JsonSerializer.Deserialize<List<OrderItem>>(order.SerializedItems)
+                        ?? new List<OrderItem>();
+                }
+                else
+                {
+                    order.OrderItems = new List<OrderItem>();
+                }
+            }
         }
     }
 
     private void SyncFields()
     {
-        editName = AuthService?.CurrentUser?.Name ?? "";
-        editPhone = AuthService?.CurrentUser?.Phone ?? "";
-        editAddress = AuthService?.CurrentUser?.Address ?? "";
-        editCity = AuthService?.CurrentUser?.City ?? "";
-        editZip = AuthService?.CurrentUser?.ZipCode ?? "";
-        editCountry = AuthService?.CurrentUser?.Country ?? "";
+        editName = AuthService.CurrentUser?.Name ?? "";
+        editPhone = AuthService.CurrentUser?.Phone ?? "";
+        editAddress = AuthService.CurrentUser?.Address ?? "";
+        editCity = AuthService.CurrentUser?.City ?? "";
+        editZip = AuthService.CurrentUser?.ZipCode ?? "";
+        editCountry = AuthService.CurrentUser?.Country ?? "";
     }
 
-    private void ToggleEdit() 
+    private void ToggleEdit()
     {
         isEditing = !isEditing;
         if (isEditing) SyncFields();
@@ -175,7 +210,11 @@
 
     private async Task SaveChanges()
     {
-        var user = await DbContext.Users.FindAsync(AuthService?.CurrentUser?.Id);
+        var userId = AuthService.CurrentUser?.Id;
+        if (userId == null)
+            return;
+
+        var user = await DbContext.Users.FindAsync(userId);
         if (user != null)
         {
             user.Name = editName;
@@ -187,13 +226,12 @@
 
             await DbContext.SaveChangesAsync();
 
-            // Atualiza a sessão local
-            AuthService?.CurrentUser?.Name = editName;
-            AuthService?.CurrentUser?.Phone = editPhone;
-            AuthService?.CurrentUser?.Address = editAddress;
-            AuthService?.CurrentUser?.City = editCity;
-            AuthService?.CurrentUser?.ZipCode = editZip;
-            AuthService?.CurrentUser?.Country = editCountry;
+            AuthService.CurrentUser!.Name = editName;
+            AuthService.CurrentUser.Phone = editPhone;
+            AuthService.CurrentUser.Address = editAddress;
+            AuthService.CurrentUser.City = editCity;
+            AuthService.CurrentUser.ZipCode = editZip;
+            AuthService.CurrentUser.Country = editCountry;
 
             statusMessage = "Profile synchronized!";
             StateHasChanged();

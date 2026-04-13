@@ -66,10 +66,10 @@ else
                                 {
                                     <div class="d-flex align-items-center mt-3 border-bottom pb-3">
                                         @* Exibição da Imagem Dinâmica *@
-                                        <img src="@item.ImageUrl.TrimStart('/')" alt="@item.ProductName"
+                                        <img src="@item.ImageUrl" alt="@item.ProductName"
                                              style="width: 80px; height: 80px; object-fit: cover;" 
                                              class="me-3 border" 
-                                             onerror="this.src='images/placeholder.png';" />
+                                             onerror="this.src='/images/placeholder.png';" />
 
                                         <div class="flex-grow-1">
                                             <p class="mb-0 fw-bold text-uppercase">@item.ProductName</p>
@@ -119,6 +119,6 @@ else
     private void Logout()
     {
         AuthService.Logout();
-        NavManager.NavigateTo("/");
+        NavManager.NavigateTo("/", forceLoad: true);
     }
 }
