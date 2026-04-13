@@ -14,7 +14,7 @@ namespace StreetTshirtApp.Models
         public string CustomerEmail { get; set; } = string.Empty;
         public string ShippingAddress { get; set; } = string.Empty;
 
-        // Mantemos para persistência no banco de dados
+        
         public string SerializedItems { get; set; } = string.Empty;
 
         // Propriedade para a UI (não salva no banco diretamente pelo EF)
@@ -22,17 +22,17 @@ namespace StreetTshirtApp.Models
         public List<OrderItem> OrderItems 
         { 
             get 
-            {
-                if (string.IsNullOrEmpty(SerializedItems)) return new List<OrderItem>();
-                try 
                 {
-                    return JsonSerializer.Deserialize<List<OrderItem>>(SerializedItems) ?? new List<OrderItem>();
+                    if (string.IsNullOrWhiteSpace(SerializedItems)) return new List<OrderItem>();
+                    try 
+                    {
+                        // O PropertyNameCaseInsensitive é vital se o JSON foi gravado com camelCase
+                        return JsonSerializer.Deserialize<List<OrderItem>>(SerializedItems, 
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<OrderItem>();
+                    }
+                    catch { return new List<OrderItem>(); }
                 }
-                catch 
-                {
-                    return new List<OrderItem>();
-                }
-            }
+            
             set 
             {
                 SerializedItems = JsonSerializer.Serialize(value);

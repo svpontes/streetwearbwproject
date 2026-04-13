@@ -215,7 +215,7 @@
         {
             ProductId = i.Product.Id,
             ProductName = i.Product.Name,
-            ImageUrl = i.Product.ImageUrl, // AGORA A IMAGEM SERÁ SALVA!
+            ImageUrl = i.Product.ImageUrl,
             Size = i.Size,
             Quantity = i.Quantity,
             Price = i.Product.Price
@@ -238,7 +238,7 @@
         DbContext.Orders.Add(newOrder);
         await DbContext.SaveChangesAsync();
 
-        // 3. Atualize o histórico do usuário na memória para refletir no Perfil imediatamente
+        
         if (AuthService.CurrentUser != null)
         {
             AuthService.CurrentUser.OrderHistory.Add(newOrder);

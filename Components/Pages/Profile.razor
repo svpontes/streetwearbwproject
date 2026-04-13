@@ -15,36 +15,33 @@ else
 {
     <div class="container mt-5 mb-5">
         <div class="row">
-            
+            @* Coluna da Esquerda: Informações do Cliente *@
             <div class="col-md-4 mb-4">
                 <div class="card bg-white text-dark rounded-0 border p-4 shadow-sm">
                     <div class="text-center mb-4">
                         <i class="bi bi-person-circle display-1"></i>
                     </div>
-                    <h3 class="fw-bold text-center mb-1 text-uppercase" style="letter-spacing: 2px;">@AuthService.CurrentUser.Name</h3>
+                    <h3 class="fw-bold text-center mb-1 text-uppercase" style="letter-spacing: 2px;">
+                        @AuthService.CurrentUser.Name
+                    </h3>
                     <p class="text-secondary text-center small mb-4">@AuthService.CurrentUser.Email</p>
-                    
+
                     <div class="user-info small mb-4">
                         <p class="mb-1"><strong>PHONE</strong><br />@AuthService.CurrentUser.Phone</p>
                         <p class="mb-0"><strong>ADDRESS</strong><br />@AuthService.CurrentUser.Address</p>
                     </div>
 
                     <hr />
-                    
+
                     <button class="btn btn-dark btn-sm w-100 rounded-0 fw-bold mb-2">UPDATE PROFILE</button>
                     <button class="btn btn-outline-danger btn-sm w-100 rounded-0 fw-bold" @onclick="Logout">LOGOUT</button>
                 </div>
             </div>
 
-            
+            @* Coluna da Direita: Histórico de Compras Detalhado *@
             <div class="col-md-8">
                 <h2 class="fw-bold mb-4" style="letter-spacing: 2px;">ORDER HISTORY</h2>
-                <div class="alert alert-info small">
-    <strong>Debug Info:</strong><br />
-    Pedidos encontrados: @AuthService.CurrentUser.OrderHistory.Count <br />
-    JSON do último pedido: @AuthService.CurrentUser.OrderHistory.LastOrDefault()?.SerializedItems
-</div>
-                
+
                 @if (AuthService.CurrentUser.OrderHistory == null || !AuthService.CurrentUser.OrderHistory.Any())
                 {
                     <div class="p-5 border border-secondary text-center">
@@ -54,43 +51,43 @@ else
                 }
                 else
                 {
-                    @foreach (var order in AuthService.CurrentUser.OrderHistory)
+                    @foreach (var order in AuthService.CurrentUser.OrderHistory.OrderByDescending(o => o.OrderDate))
                     {
-                        <div class="order-container mb-4 border bg-white shadow-sm">
-                            <div class="order-header p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
-                                <h6 class="fw-bold m-0 text-uppercase">Order #@order.Id.ToString("D5")</h6>
-                                <span class="badge bg-dark rounded-0">@order.Status.ToUpper()</span>
+                        <div class="order-card mb-4 border p-3 shadow-sm">
+                            <div class="d-flex justify-content-between fw-bold border-bottom pb-2 mb-2 bg-light p-2">
+                                <span>PEDIDO #@order.Id.ToString("D5")</span>
+                                <span>TOTAL: @order.TotalAmount.ToString("C")</span>
                             </div>
-                            
-                            <div class="order-body p-3">
-                                <div class="row mb-3">
-                                    <div class="col-6 small text-muted">
-                                        Date: @order.OrderDate.ToShortDateString()
-                                    </div>
-                                    <div class="col-6 text-end fw-bold">
-                                        Total: @order.TotalAmount.ToString("C")
-                                    </div>
-                                </div>
 
-                               
-                                <div class="items-list">
-                                    @foreach (var item in order.OrderItems)
-                                    {
-                                        <div class="d-flex align-items-center p-2 mb-2 border-bottom">
-                                            <img src="@item.ImageUrl" alt="@item.ProductName" 
-                                                 style="width: 60px; height: 60px; object-fit: cover;" class="me-3 border" />
-                                            
-                                            <div class="flex-grow-1">
-                                                <span class="d-block fw-bold small text-uppercase">@item.ProductName</span>
-                                                <span class="x-small text-muted">Size: @item.Size | Qty: @item.Quantity</span>
-                                            </div>
-                                            
-                                            <div class="text-end">
-                                                <span class="small fw-bold">@((item.Price * item.Quantity).ToString("C"))</span>
-                                            </div>
+                            @* Iteração sobre os itens desserializados do JSON *@
+                            @if (order.OrderItems != null && order.OrderItems.Any())
+                            {
+                                @foreach (var item in order.OrderItems)
+                                {
+                                    <div class="d-flex align-items-center mt-3 border-bottom pb-3">
+                                        @* Exibição da Imagem Dinâmica *@
+                                        <img src="@item.ImageUrl.TrimStart('/')" alt="@item.ProductName"
+                                             style="width: 80px; height: 80px; object-fit: cover;" 
+                                             class="me-3 border" 
+                                             onerror="this.src='images/placeholder.png';" />
+
+                                        <div class="flex-grow-1">
+                                            <p class="mb-0 fw-bold text-uppercase">@item.ProductName</p>
+                                            <small class="text-muted d-block">
+                                                TAMANHO: @item.Size | QTD: @item.Quantity
+                                            </small>
+                                            <span class="fw-bold small">@item.Price.ToString("C")</span>
                                         </div>
-                                    }
-                                </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted small p-2">Detalhes não disponíveis para este pedido.</p>
+                            }
+                            
+                            <div class="text-end mt-2">
+                                <small class="text-muted">Data: @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</small>
                             </div>
                         </div>
                     }
@@ -101,13 +98,20 @@ else
 }
 
 <style>
-    .x-small {
-        font-size: 0.7rem;
-        letter-spacing: 0.5px;
+    .order-card {
+        background-color: #fff;
+        transition: transform 0.2s ease-in-out;
     }
-    .order-container:hover {
+
+    .order-card:hover {
         border-color: #000 !important;
-        transition: 0.3s;
+        transform: translateY(-2px);
+    }
+
+    /* Estilo para garantir que o texto de tamanho fique discreto como solicitado */
+    .text-muted {
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
     }
 </style>
 
