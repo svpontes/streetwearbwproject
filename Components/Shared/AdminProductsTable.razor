@@ -2,7 +2,7 @@
 @namespace StreetTshirtApp.Components.Shared
 
 <div class="table-responsive">
-    <table id="admin-products-table" class="table border align-middle mb-0">
+    <table class="table border align-middle mb-0">
         <thead class="table-dark small text-uppercase">
             <tr>
                 <th>ID</th>
@@ -14,7 +14,7 @@
         </thead>
 
         <tbody>
-            @if (Products == null || Products.Count == 0)
+            @if (Products == null || !Products.Any())
             {
                 <tr>
                     <td colspan="5" class="text-center text-muted py-4">
@@ -26,7 +26,7 @@
             {
                 @foreach (var p in Products)
                 {
-                    <tr @key="p.Id" data-product-name="@p.Name.ToLowerInvariant()">
+                    <tr @key="p.Id">
                         <td>@p.Id</td>
                         <td>
                             <img src="@GetImageUrl(p.ImageUrl)"
@@ -35,7 +35,7 @@
                                  loading="lazy"
                                  decoding="async"
                                  draggable="false"
-                                 onerror="this.src='/images/placeholder.png';" />
+                                 onerror="this.onerror=null;this.src='/images/placeholder.png';" />
                         </td>
                         <td>@p.Name</td>
                         <td>@p.Price.ToString("C")</td>
@@ -64,8 +64,9 @@
 
     private static string GetImageUrl(string? url)
     {
-        return string.IsNullOrWhiteSpace(url)
-            ? "/images/placeholder.png"
-            : url;
+        if (string.IsNullOrWhiteSpace(url))
+            return "/images/placeholder.png";
+
+        return url;
     }
 }

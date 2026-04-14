@@ -18,7 +18,6 @@
     }
     else
     {
-        <!-- FORM -->
         <div class="card rounded-0 mb-4 shadow-sm">
             <div class="card-header bg-dark text-white text-uppercase small fw-bold">
                 @(editingProduct.Id == 0 ? "Add New Product" : "Edit Product")
@@ -41,7 +40,20 @@
 
                         <div class="col-md-5">
                             <label class="form-label small fw-bold">Image Path</label>
-                            <InputText @bind-Value="editingProduct.ImageUrl" class="form-control rounded-0" />
+                            <InputText @bind-Value="editingProduct.ImageUrl"
+                                       class="form-control rounded-0"
+                                       placeholder="/images/tshirt-front.png" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Additional Image Paths</label>
+                            <InputTextArea @bind-Value="secondaryImagesText"
+                                           class="form-control rounded-0"
+                                           rows="4"
+                                           placeholder="/images/tshirt-back.png
+                                            /images/tshirt-male-model.png
+                                            /images/tshirt-female-model.png" />
+                            <small class="text-muted">One image path per line.</small>
                         </div>
 
                         <div class="col-12">
@@ -63,10 +75,8 @@
             </div>
         </div>
 
-        <!-- SEARCH + TABLE -->
         <div class="card rounded-0 shadow-sm">
             <div class="card-body">
-
                 <div class="row g-2 mb-3">
                     <div class="col-md-8">
                         <input class="form-control rounded-0"
@@ -83,7 +93,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table border align-middle"> <!-- removido table-hover -->
+                    <table class="table border align-middle">
                         <thead class="table-dark small text-uppercase">
                             <tr>
                                 <th>ID</th>
@@ -100,9 +110,10 @@
                                 <tr @key="p.Id">
                                     <td>@p.Id</td>
                                     <td>
-                                        <img src="@p.ImageUrl"
-                                             style="width:50px;height:50px;object-fit:cover;"
-                                             onerror="this.src='/images/placeholder.png';" />
+                                        <img src="@GetImageUrl(p.ImageUrl)"
+                                             alt="@p.Name"
+                                             style="width:50px;height:50px;object-fit:cover;display:block;background-color:#f8f9fa;"
+                                             onerror="this.onerror=null;this.src='/images/placeholder.png';" />
                                     </td>
                                     <td>@p.Name</td>
                                     <td>@p.Price.ToString("C")</td>
@@ -141,13 +152,12 @@
     private List<Product> products = new();
     private Product editingProduct = new();
     private string searchTerm = "";
+    private string secondaryImagesText = "";
 
-    // 🔥 FILTRO LIMPO (SEM FLICKER)
     private IEnumerable<Product> FilteredProducts =>
         string.IsNullOrWhiteSpace(searchTerm)
             ? products
-            : products.Where(p =>
-                p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+            : products.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
@@ -167,7 +177,7 @@
             .ToListAsync();
     }
 
-    private void EditProduct(Product p)
+    private Task EditProduct(Product p)
     {
         editingProduct = new Product
         {
@@ -175,12 +185,23 @@
             Name = p.Name,
             Description = p.Description,
             Price = p.Price,
-            ImageUrl = p.ImageUrl
+            ImageUrl = p.ImageUrl,
+            SecondaryImageUrlsRaw = p.SecondaryImageUrlsRaw
         };
+
+        secondaryImagesText = p.SecondaryImageUrlsRaw ?? "";
+        return Task.CompletedTask;
     }
 
     private async Task SaveProduct()
     {
+        editingProduct.SecondaryImageUrlsRaw = secondaryImagesText?.Trim() ?? "";
+
+        if (string.IsNullOrWhiteSpace(editingProduct.ImageUrl))
+        {
+            editingProduct.ImageUrl = "/images/placeholder.png";
+        }
+
         if (editingProduct.Id == 0)
         {
             DbContext.Products.Add(editingProduct);
@@ -188,34 +209,42 @@
         else
         {
             var dbProduct = await DbContext.Products.FindAsync(editingProduct.Id);
-            if (dbProduct == null) return;
+            if (dbProduct == null)
+                return;
 
             dbProduct.Name = editingProduct.Name;
             dbProduct.Description = editingProduct.Description;
             dbProduct.Price = editingProduct.Price;
             dbProduct.ImageUrl = editingProduct.ImageUrl;
+            dbProduct.SecondaryImageUrlsRaw = editingProduct.SecondaryImageUrlsRaw;
         }
 
         await DbContext.SaveChangesAsync();
-
-        await LoadProducts(); // 🔥 simples e estável
-
+        await LoadProducts();
         ResetForm();
     }
 
     private async Task DeleteProduct(int id)
     {
         var product = await DbContext.Products.FindAsync(id);
-        if (product == null) return;
+        if (product == null)
+            return;
 
         DbContext.Products.Remove(product);
         await DbContext.SaveChangesAsync();
-
-        await LoadProducts(); // 🔥 simples e estável
+        await LoadProducts();
     }
 
     private void ResetForm()
     {
         editingProduct = new Product();
+        secondaryImagesText = "";
+    }
+
+    private static string GetImageUrl(string? url)
+    {
+        return string.IsNullOrWhiteSpace(url)
+            ? "/images/placeholder.png"
+            : url.Trim();
     }
 }
