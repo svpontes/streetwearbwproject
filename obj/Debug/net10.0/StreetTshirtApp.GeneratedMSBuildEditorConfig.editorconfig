@@ -118,6 +118,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/cse325/streetwearbwproject/Components/Shared/AdminProductsTable.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcQWRtaW5Qcm9kdWN0c1RhYmxlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/cse325/streetwearbwproject/Components/Shared/AdminProductTable.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcQWRtaW5Qcm9kdWN0VGFibGUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 

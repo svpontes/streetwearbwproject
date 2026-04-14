@@ -6,7 +6,6 @@
 @inject NavigationManager NavManager
 @inject AuthService AuthService
 @rendermode InteractiveServer
-@using StreetTshirtApp.Components.Shared
 
 <div class="container mt-5 pt-5">
     <h2 class="fw-bold text-uppercase mb-4">Admin Product Inventory</h2>
@@ -19,6 +18,7 @@
     }
     else
     {
+        <!-- FORM -->
         <div class="card rounded-0 mb-4 shadow-sm">
             <div class="card-header bg-dark text-white text-uppercase small fw-bold">
                 @(editingProduct.Id == 0 ? "Add New Product" : "Edit Product")
@@ -41,7 +41,7 @@
 
                         <div class="col-md-5">
                             <label class="form-label small fw-bold">Image Path</label>
-                            <InputText @bind-Value="editingProduct.ImageUrl" class="form-control rounded-0" placeholder="/images/product.png" />
+                            <InputText @bind-Value="editingProduct.ImageUrl" class="form-control rounded-0" />
                         </div>
 
                         <div class="col-12">
@@ -63,32 +63,75 @@
             </div>
         </div>
 
+        <!-- SEARCH + TABLE -->
         <div class="card rounded-0 shadow-sm">
             <div class="card-body">
+
                 <div class="row g-2 mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-8">
                         <input class="form-control rounded-0"
                                @bind="searchTerm"
+                               @bind:event="oninput"
                                placeholder="Search product..." />
                     </div>
 
-                    <div class="col-md-3">
-                        <button class="btn btn-dark rounded-0 w-100" @onclick="ApplyFilter">
-                            Search
-                        </button>
-                    </div>
-
-                    <div class="col-md-3">
-                        <button class="btn btn-outline-dark rounded-0 w-100" @onclick="RefreshProducts">
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-dark rounded-0 w-100" @onclick="LoadProducts">
                             Refresh
                         </button>
                     </div>
                 </div>
 
-                <StreetTshirtApp.Components.Shared.AdminProductTable
-                                    Products="filteredProducts"
-                                    OnEdit="EditProduct"
-                                    OnDelete="DeleteProduct" />
+                <div class="table-responsive">
+                    <table class="table border align-middle"> <!-- removido table-hover -->
+                        <thead class="table-dark small text-uppercase">
+                            <tr>
+                                <th>ID</th>
+                                <th>Preview</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var p in FilteredProducts)
+                            {
+                                <tr @key="p.Id">
+                                    <td>@p.Id</td>
+                                    <td>
+                                        <img src="@p.ImageUrl"
+                                             style="width:50px;height:50px;object-fit:cover;"
+                                             onerror="this.src='/images/placeholder.png';" />
+                                    </td>
+                                    <td>@p.Name</td>
+                                    <td>@p.Price.ToString("C")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-2"
+                                                @onclick="() => EditProduct(p)">
+                                            Edit
+                                        </button>
+
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                @onclick="() => DeleteProduct(p.Id)">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+
+                            @if (!FilteredProducts.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        No products found.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
         </div>
     }
@@ -96,9 +139,15 @@
 
 @code {
     private List<Product> products = new();
-    private List<Product> filteredProducts = new();
     private Product editingProduct = new();
     private string searchTerm = "";
+
+    // 🔥 FILTRO LIMPO (SEM FLICKER)
+    private IEnumerable<Product> FilteredProducts =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? products
+            : products.Where(p =>
+                p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,27 +165,9 @@
         products = await DbContext.Products
             .OrderBy(p => p.Name)
             .ToListAsync();
-
-        filteredProducts = new List<Product>(products);
     }
 
-    private void ApplyFilter()
-    {
-        filteredProducts = string.IsNullOrWhiteSpace(searchTerm)
-            ? new List<Product>(products)
-            : products
-                .Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(p => p.Name)
-                .ToList();
-    }
-
-    private async Task RefreshProducts()
-    {
-        searchTerm = "";
-        await LoadProducts();
-    }
-
-    private Task EditProduct(Product p)
+    private void EditProduct(Product p)
     {
         editingProduct = new Product
         {
@@ -146,60 +177,41 @@
             Price = p.Price,
             ImageUrl = p.ImageUrl
         };
-
-        return Task.CompletedTask;
     }
 
     private async Task SaveProduct()
     {
-        var isNew = editingProduct.Id == 0;
-
-        if (isNew)
+        if (editingProduct.Id == 0)
         {
             DbContext.Products.Add(editingProduct);
-            await DbContext.SaveChangesAsync();
-
-            products.Add(editingProduct);
         }
         else
         {
             var dbProduct = await DbContext.Products.FindAsync(editingProduct.Id);
-            if (dbProduct == null)
-                return;
+            if (dbProduct == null) return;
 
             dbProduct.Name = editingProduct.Name;
             dbProduct.Description = editingProduct.Description;
             dbProduct.Price = editingProduct.Price;
             dbProduct.ImageUrl = editingProduct.ImageUrl;
-
-            await DbContext.SaveChangesAsync();
-
-            var local = products.FirstOrDefault(p => p.Id == editingProduct.Id);
-            if (local != null)
-            {
-                local.Name = editingProduct.Name;
-                local.Description = editingProduct.Description;
-                local.Price = editingProduct.Price;
-                local.ImageUrl = editingProduct.ImageUrl;
-            }
         }
 
-        products = products.OrderBy(p => p.Name).ToList();
-        ApplyFilter();
+        await DbContext.SaveChangesAsync();
+
+        await LoadProducts(); // 🔥 simples e estável
+
         ResetForm();
     }
 
     private async Task DeleteProduct(int id)
     {
         var product = await DbContext.Products.FindAsync(id);
-        if (product == null)
-            return;
+        if (product == null) return;
 
         DbContext.Products.Remove(product);
         await DbContext.SaveChangesAsync();
 
-        products.RemoveAll(p => p.Id == id);
-        ApplyFilter();
+        await LoadProducts(); // 🔥 simples e estável
     }
 
     private void ResetForm()
