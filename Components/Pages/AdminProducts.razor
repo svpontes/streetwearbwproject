@@ -1,0 +1,209 @@
+@page "/admin/products"
+@using Microsoft.EntityFrameworkCore
+@using StreetTshirtApp.Models
+@using StreetTshirtApp.Services
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavManager
+@inject AuthService AuthService
+@rendermode InteractiveServer
+@using StreetTshirtApp.Components.Shared
+
+<div class="container mt-5 pt-5">
+    <h2 class="fw-bold text-uppercase mb-4">Admin Product Inventory</h2>
+
+    @if (!AuthService.IsAdmin)
+    {
+        <div class="alert alert-danger rounded-0">
+            Access denied. Administrators only.
+        </div>
+    }
+    else
+    {
+        <div class="card rounded-0 mb-4 shadow-sm">
+            <div class="card-header bg-dark text-white text-uppercase small fw-bold">
+                @(editingProduct.Id == 0 ? "Add New Product" : "Edit Product")
+            </div>
+            <div class="card-body">
+                <EditForm Model="@editingProduct" OnValidSubmit="SaveProduct">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Product Name</label>
+                            <InputText @bind-Value="editingProduct.Name" class="form-control rounded-0" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Price</label>
+                            <InputNumber @bind-Value="editingProduct.Price" class="form-control rounded-0" />
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold">Image Path</label>
+                            <InputText @bind-Value="editingProduct.ImageUrl" class="form-control rounded-0" placeholder="/images/product.png" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Description</label>
+                            <InputTextArea @bind-Value="editingProduct.Description" class="form-control rounded-0" />
+                        </div>
+
+                        <div class="col-12 d-flex gap-2">
+                            <button type="submit" class="btn btn-dark rounded-0">
+                                @(editingProduct.Id == 0 ? "Create Product" : "Update Product")
+                            </button>
+
+                            <button type="button" class="btn btn-outline-secondary rounded-0" @onclick="ResetForm">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+
+        <div class="card rounded-0 shadow-sm">
+            <div class="card-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <input class="form-control rounded-0"
+                               @bind="searchTerm"
+                               placeholder="Search product..." />
+                    </div>
+
+                    <div class="col-md-3">
+                        <button class="btn btn-dark rounded-0 w-100" @onclick="ApplyFilter">
+                            Search
+                        </button>
+                    </div>
+
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-dark rounded-0 w-100" @onclick="RefreshProducts">
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <StreetTshirtApp.Components.Shared.AdminProductTable
+                                    Products="filteredProducts"
+                                    OnEdit="EditProduct"
+                                    OnDelete="DeleteProduct" />
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Product> products = new();
+    private List<Product> filteredProducts = new();
+    private Product editingProduct = new();
+    private string searchTerm = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAdmin)
+        {
+            NavManager.NavigateTo("/");
+            return;
+        }
+
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        products = await DbContext.Products
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+
+        filteredProducts = new List<Product>(products);
+    }
+
+    private void ApplyFilter()
+    {
+        filteredProducts = string.IsNullOrWhiteSpace(searchTerm)
+            ? new List<Product>(products)
+            : products
+                .Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(p => p.Name)
+                .ToList();
+    }
+
+    private async Task RefreshProducts()
+    {
+        searchTerm = "";
+        await LoadProducts();
+    }
+
+    private Task EditProduct(Product p)
+    {
+        editingProduct = new Product
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Description = p.Description,
+            Price = p.Price,
+            ImageUrl = p.ImageUrl
+        };
+
+        return Task.CompletedTask;
+    }
+
+    private async Task SaveProduct()
+    {
+        var isNew = editingProduct.Id == 0;
+
+        if (isNew)
+        {
+            DbContext.Products.Add(editingProduct);
+            await DbContext.SaveChangesAsync();
+
+            products.Add(editingProduct);
+        }
+        else
+        {
+            var dbProduct = await DbContext.Products.FindAsync(editingProduct.Id);
+            if (dbProduct == null)
+                return;
+
+            dbProduct.Name = editingProduct.Name;
+            dbProduct.Description = editingProduct.Description;
+            dbProduct.Price = editingProduct.Price;
+            dbProduct.ImageUrl = editingProduct.ImageUrl;
+
+            await DbContext.SaveChangesAsync();
+
+            var local = products.FirstOrDefault(p => p.Id == editingProduct.Id);
+            if (local != null)
+            {
+                local.Name = editingProduct.Name;
+                local.Description = editingProduct.Description;
+                local.Price = editingProduct.Price;
+                local.ImageUrl = editingProduct.ImageUrl;
+            }
+        }
+
+        products = products.OrderBy(p => p.Name).ToList();
+        ApplyFilter();
+        ResetForm();
+    }
+
+    private async Task DeleteProduct(int id)
+    {
+        var product = await DbContext.Products.FindAsync(id);
+        if (product == null)
+            return;
+
+        DbContext.Products.Remove(product);
+        await DbContext.SaveChangesAsync();
+
+        products.RemoveAll(p => p.Id == id);
+        ApplyFilter();
+    }
+
+    private void ResetForm()
+    {
+        editingProduct = new Product();
+    }
+}

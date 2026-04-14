@@ -53,6 +53,11 @@
                                 <li><a class="dropdown-item py-3 fw-bold text-uppercase text-warning" href="/admin">Admin Panel</a></li>
                             }
                             <li><a class="dropdown-item py-3 fw-bold text-uppercase" href="/profile">My Profile</a></li>
+                            @if (AuthService.IsAdmin)
+                            {
+                                <li><a class="dropdown-item py-3 fw-bold text-uppercase text-warning" href="/admin">Admin Panel</a></li>
+                                <li><a class="dropdown-item py-3 fw-bold text-uppercase" href="/admin/products">Manage Products</a></li>
+                            }
                             <li><button class="dropdown-item py-3 fw-bold text-uppercase text-danger" @onclick="Logout">Logout</button></li>
                         </ul>
                     </div>
