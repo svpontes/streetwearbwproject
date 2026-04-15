@@ -15,7 +15,7 @@ namespace StreetTshirtApp.Services
         private readonly IServiceScopeFactory _scopeFactory;
 
         // Holds the currently authenticated user's data. Null if no user is logged in.
-        public User? CurrentUser { get; private set; }
+        public User? CurrentUser { get; set; }
 
         // Event triggered whenever the authentication state changes (Login/Logout),
         // allowing UI components to refresh automatically.

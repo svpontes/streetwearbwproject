@@ -3,15 +3,16 @@
 @using StreetTshirtApp.Services
 @using StreetTshirtApp.Models
 @using System.Text.Json
+@using Microsoft.EntityFrameworkCore
 
 @inject CartService CartService
 @inject NavigationManager NavManager
-@inject ApplicationDbContext DbContext
+@inject StreetTshirtApp.Data.ApplicationDbContext DbContext
 @inject AuthService AuthService
 
 @* --- CHECKOUT COMPONENT ---
-   Purpose: Orchestrates the final purchase flow. It collects user billing/shipping info,
-   performs strict data validation, and persists the final transaction to the SQLite database.
+    Purpose: Orchestrates the final purchase flow. It collects user billing/shipping info,
+    performs strict data validation, and persists the final transaction to the SQLite database.
 *@
 
 <div class="container mt-5 pt-5 pb-5">
@@ -23,7 +24,22 @@
         </ol>
     </nav>
 
-    @if (CartService.CartItems.Any())
+    @if (showSuccessMessage)
+    {
+        @* --- SUCCESS FEEDBACK AREA --- *@
+        <div class="text-center py-5">
+            <div class="bg-black border border-secondary p-5 shadow-lg">
+                <i class="bi bi-check-circle-fill display-1" style="color: #CCFF00;"></i>
+                <h2 class="mt-4 fw-bold text-white text-uppercase" style="letter-spacing: 3px;">Order Placed Successfully!</h2>
+                <p class="text-secondary mt-2 mb-4">Your profile has been updated and your order is being processed.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/catalog" class="btn btn-outline-light rounded-0 px-4 fw-bold">CONTINUE SHOPPING</a>
+                    <a href="/profile" class="btn rounded-0 px-4 fw-bold" style="background-color: #CCFF00; color: black;">VIEW MY PROFILE</a>
+                </div>
+            </div>
+        </div>
+    }
+    else if (CartService.CartItems.Any())
     {
         <div class="row g-4">
             @* --- LEFT COLUMN: BILLING & PAYMENT FORM --- *@
@@ -114,8 +130,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-dark w-100 py-3 fw-bold text-uppercase rounded-0 mt-3">
-                            Place Order
+                        <button type="submit" class="btn btn-dark w-100 py-3 fw-bold text-uppercase rounded-0 mt-3" disabled="@isProcessing">
+                            @(isProcessing ? "PROCESSING..." : "Place Order")
                         </button>
                     </EditForm>
                 </div>
@@ -127,11 +143,9 @@
                     <h4 class="h5 mb-0 text-uppercase fw-bold" style="letter-spacing: 1px;">Order Summary</h4>
                 </div>
                 
-                @* Sticky Summary Card keeps the totals visible during long form scrolling *@
                 <div class="card p-4 bg-white border border-secondary-subtle rounded-0 shadow-sm sticky-top" style="top: 100px; z-index: 1000;">
                     <h4 class="fw-bold mb-4">Order Summary</h4>
 
-                    @* Itemized cart list using data from the CartService *@
                     @foreach (var item in CartService.CartItems)
                     {
                         <div class="d-flex align-items-center mb-3 border-bottom pb-3">
@@ -159,7 +173,6 @@
                         </div>
                     }
 
-                    @* Pricing Totals *@
                     <div class="d-flex justify-content-between mb-2 small text-uppercase">
                         <span>Subtotal</span>
                         <span>@CartService.TotalPrice.ToString("C")</span>
@@ -182,7 +195,6 @@
     }
     else
     {
-        @* --- EMPTY CART FEEDBACK --- *@
         <div class="text-center py-5">
             <i class="bi bi-cart-x display-1 text-secondary"></i>
             <h3 class="mt-4 fw-bold">No items to checkout.</h3>
@@ -192,42 +204,63 @@
 </div>
 
 @code {
-    // Local form model
     private CheckoutModel checkoutModel = new();
+    private bool showSuccessMessage = false;
+    private bool isProcessing = false;
 
-    /// <summary>
-    /// Lifecycle: Pre-fills form data if the user is authenticated 
-    /// to reduce friction during the purchase process.
-    /// </summary>
     protected override void OnInitialized()
     {
-        if (AuthService.CurrentUser != null)
-        {
-            var user = AuthService.CurrentUser;
-            
-            // Basic string parsing to split names for the form fields
-            var names = user.Name.Split(' ');
-            checkoutModel.FirstName = names.Length > 0 ? names[0] : "";
-            checkoutModel.LastName = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
-            
-            checkoutModel.Email = user.Email;
-            checkoutModel.Phone = user.Phone ?? "";
-            checkoutModel.Address = user.Address ?? "";
-            checkoutModel.City = user.City ?? "";
-            checkoutModel.PostalCode = user.ZipCode ?? "";
-            checkoutModel.Country = user.Country ?? "";
+    if (AuthService.CurrentUser != null)
+    {
+        var user = AuthService.CurrentUser;
+        
+        // Split name for the form fields
+        var names = user.Name.Split(' ');
+        checkoutModel.FirstName = names.Length > 0 ? names[0] : "";
+        checkoutModel.LastName = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
+        
+        // Mapeamento direto dos dados que o cliente preencheu no Profile
+        checkoutModel.Email = user.Email;
+        checkoutModel.Phone = user.Phone ?? "";
+        checkoutModel.Address = user.Address ?? "";
+        checkoutModel.City = user.City ?? "";
+        checkoutModel.PostalCode = user.ZipCode ?? "";
+        checkoutModel.Country = user.Country ?? "";
         }
     }
 
     /// <summary>
-    /// Core Transaction Logic: Converts the ephemeral cart state into 
-    /// permanent database entities (Order and OrderItems).
+    /// Core Transaction Logic: Converts the ephemeral cart state into permanent database entities,
+    /// updates user profile information, and triggers the success UI state.
     /// </summary>
     private async Task HandleCheckout()
     {
+        isProcessing = true;
+
         try 
         {
-            // 1. DATA TRANSFORMATION: Map cart items to OrderItem entities
+            // 1. PROFILE SYNC: Persist form data to the User record in SQLite
+            if (AuthService.CurrentUser != null)
+            {
+                var userInDb = await DbContext.Users.FirstOrDefaultAsync(u => u.Id == AuthService.CurrentUser.Id);
+                if (userInDb != null)
+                {
+                    userInDb.Address = checkoutModel.Address;
+                    userInDb.City = checkoutModel.City;
+                    userInDb.ZipCode = checkoutModel.PostalCode;
+                    userInDb.Country = checkoutModel.Country;
+                    userInDb.Phone = checkoutModel.Phone;
+
+                    // Update memory session
+                    AuthService.CurrentUser.Address = checkoutModel.Address;
+                    AuthService.CurrentUser.City = checkoutModel.City;
+                    AuthService.CurrentUser.ZipCode = checkoutModel.PostalCode;
+                    AuthService.CurrentUser.Country = checkoutModel.Country;
+                    AuthService.CurrentUser.Phone = checkoutModel.Phone;
+                }
+            }
+
+            // 2. DATA TRANSFORMATION: Map cart items to OrderItem entities
             var orderItems = CartService.CartItems.Select(i => new OrderItem 
             {
                 ProductId = i.Product.Id,
@@ -238,7 +271,7 @@
                 Price = i.Product.Price
             }).ToList();
 
-            // 2. ASSEMBLY: Create the comprehensive Order object
+            // 3. ASSEMBLY: Create the comprehensive Order object
             var newOrder = new Order
             {
                 CustomerName = $"{checkoutModel.FirstName} {checkoutModel.LastName}",
@@ -250,31 +283,30 @@
                 OrderItems = orderItems
             };
 
-            // 3. PERSISTENCE: Save to the SQLite database context
+            // 4. PERSISTENCE: Save everything to SQLite
             DbContext.Orders.Add(newOrder);
             await DbContext.SaveChangesAsync();
 
-            // 4. SESSION SYNC: Update the local user's history in memory for immediate UI update
+            // 5. SESSION UPDATE: Update order history in memory
             if (AuthService.CurrentUser != null)
             {
                 AuthService.CurrentUser.OrderHistory.Add(newOrder);
             }
 
-            // 5. CLEANUP: Wipe the cart state and navigate to success confirmation
+            // 6. FINALIZATION: Clear cart and show success view
             CartService.ClearCart();
-            NavManager.NavigateTo("/order-success");
+            showSuccessMessage = true;
         }
         catch (Exception ex)
         {
-            // Log persistence failure (e.g., database lock or schema mismatch)
-            Console.WriteLine($"Critical error during checkout process: {ex.Message}");
+            Console.WriteLine($"Critical error during checkout: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
         }
     }
 
-    /// <summary>
-    /// Data Transfer Object (DTO) with built-in validation.
-    /// Regular Expressions are used to ensure data integrity and prevent injection/bad data.
-    /// </summary>
     public class CheckoutModel
     {
         [Required(ErrorMessage = "First name is required.")]
@@ -308,7 +340,6 @@
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Only letters are allowed.")]
         public string Country { get; set; } = string.Empty;
 
-        // Payment Security Validation
         [Required(ErrorMessage = "Card number is required.")]
         [RegularExpression(@"^[0-9]{13,19}$", ErrorMessage = "Must be 13-19 digits.")]
         public string CardNumber { get; set; } = string.Empty;
