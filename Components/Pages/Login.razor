@@ -23,8 +23,11 @@
             <div class="mb-4">
                 <label class="small fw-bold text-secondary">PASSWORD</label>
                 <input type="password" @bind="password" class="form-control bg-transparent border-secondary text-white rounded-0 py-2" />
+                <a href="/forgot-password" class="hover-white small text-secondary text-decoration-none" text-align="right" style="float: right; margin-top: 5px;">
+                    Forgot password? Click Here!
+                </a>
             </div>
-
+            
             @* Error Feedback: Displayed only if the authentication service returns false *@
             @if (!string.IsNullOrEmpty(errorMessage))
             {

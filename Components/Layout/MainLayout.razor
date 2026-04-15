@@ -2,13 +2,13 @@
 @inject NavigationManager NavManager
 @using StreetTshirtApp.Models
 
-@* Adicionamos d-flex e min-vh-100 para garantir que o footer fique no fundo *@
+
 <div class="page d-flex flex-column min-vh-100">
     <main class="flex-grow-1">
         <NavMenu />
 
         <div class="container mt-3">
-            @* Renderiza o Breadcrumb apenas se não estiver na Home "/" *@
+            
             @if (NavManager.ToBaseRelativePath(NavManager.Uri).Split('?')[0] != "")
             {
                 <Breadcrumbs Items="GetBreadcrumbs()" />
@@ -20,14 +20,14 @@
         </div>
     </main>
 
-    @* Chamada do componente Footer *@
+    
     <Footer />
 </div>
 
 @code {
     private List<BreadcrumbItem> GetBreadcrumbs()
     {
-        // 1. Pegamos a URI e removemos tudo que vem após o '?' (Query String)
+       
         var fullRelativeUri = NavManager.ToBaseRelativePath(NavManager.Uri);
         var cleanUri = fullRelativeUri.Split('?')[0]; 
 
@@ -62,7 +62,7 @@
 
     protected override void OnInitialized()
     {
-        // Garante que o layout atualize os breadcrumbs sempre que a URL mudar
+        
         NavManager.LocationChanged += (s, e) => StateHasChanged();
     }
 }

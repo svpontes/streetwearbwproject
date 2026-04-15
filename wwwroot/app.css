@@ -121,3 +121,23 @@ h4:focus {
     height: 100%;
     padding: 15px;
 }
+
+.x-small { font-size: 0.7rem; letter-spacing: 1px; }
+    
+    
+.messages-container {
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    
+.text-break {
+        word-break: break-all !important;
+    }
+
+
+/* Custom Neon Lime for BluntWear */
+.text-lime {
+    color: #31c005 !important;
+    
+}

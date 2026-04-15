@@ -20,37 +20,59 @@
             <i class="bi bi-arrow-left me-2"></i> Dashboard
         </a>
     </div>
-
-    @* --- DATA TABLE --- *@
-    <div class="table-responsive">
-        <table class="table table-hover border">
-            <thead class="table-dark">
-                <tr>
-                    <th>Date</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Subject</th>
-                    <th>Message</th>
-                </tr>
-            </thead>
-            <tbody>
-                @* Iterate through messages retrieved from the database *@
-                @foreach (var msg in messages)
-                {
-                    <tr>
-                        @* Formatted timestamp for readability *@
-                        <td class="small">@msg.CreatedAt.ToString("g")</td>
-                        <td class="fw-bold">@msg.Name</td>
-                        <td>@msg.Email</td>
-                        @* Subject displayed as a Badge for visual categorization *@
-                        <td><span class="badge bg-secondary">@msg.Subject</span></td>
-                        <td>@msg.Message</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
 </div>
+    @* --- RESPONSIVE MESSAGE LOGS --- *@
+<div class="messages-container">
+    @if (messages == null || !messages.Any())
+    {
+        <div class="alert alert-light border-dark rounded-0 text-center py-5">
+            <p class="text-muted m-0">NO MESSAGES FOUND IN THE LEDGER.</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var msg in messages)
+        {
+            @* Cada mensagem agora é um Card, o que evita o scroll horizontal no mobile *@
+            <div class="card rounded-0 border-dark mb-4 shadow-sm">
+                @* Cabeçalho do Card com Data e Assunto *@
+                <div class="card-header bg-black text-white rounded-0 d-flex justify-content-between align-items-center py-2">
+                    <span class="fw-bold x-small">@msg.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    <span class="badge bg-secondary x-small text-uppercase">@msg.Subject</span>
+                </div>
+
+                <div class="card-body p-3">
+                    @* Info do Cliente *@
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-0 text-uppercase">@msg.Name</h6>
+                        <span class="text-primary small text-break">@msg.Email</span>
+                    </div>
+                    
+                    @* Conteúdo da Mensagem com fundo cinza claro para destaque *@
+                    <div class="p-3 bg-light border">
+                        <p class="mb-0 small text-dark" style="white-space: pre-wrap; word-break: break-word;">
+                            <strong class="x-small text-muted text-uppercase d-block mb-1">Message Content:</strong>
+                            @msg.Message
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .x-small { font-size: 0.65rem; letter-spacing: 1px; }
+    
+    /* Impede que e-mails longos quebrem o layout no mobile */
+    .text-break { word-break: break-all !important; }
+
+    /* Estilo para garantir que o container use 100% da tela sem transbordar */
+    .messages-container {
+        width: 100%;
+        overflow-x: hidden;
+    }
+</style>
 
 @code {
     // Internal list to hold the communication records

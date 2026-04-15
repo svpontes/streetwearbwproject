@@ -200,4 +200,4 @@ F:\cse325\streetwearbwproject\obj\Debug\net10.0\refint\StreetTshirtApp.dll
 F:\cse325\streetwearbwproject\obj\Debug\net10.0\StreetTshirtApp.pdb
 F:\cse325\streetwearbwproject\obj\Debug\net10.0\StreetTshirtApp.genruntimeconfig.cache
 F:\cse325\streetwearbwproject\obj\Debug\net10.0\ref\StreetTshirtApp.dll
-F:\cse325\streetwearbwproject\obj\Debug\net10.0\compressed\smhswyqfqw-{0}-92fclsu0lc-92fclsu0lc.gz
+F:\cse325\streetwearbwproject\obj\Debug\net10.0\compressed\smhswyqfqw-{0}-9gw5r38491-9gw5r38491.gz

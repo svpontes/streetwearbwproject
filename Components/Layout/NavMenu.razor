@@ -37,14 +37,17 @@
                 else
                 {
                     <div class="dropdown">
-                        <button class="btn text-white fw-bold text-uppercase dropdown-toggle border-0 d-flex align-items-center"
+                        <button class="btn text-white fw-bold text-uppercase dropdown-toggle border-0 d-flex align-items-center p-0"
                                 type="button"
                                 id="userMenu"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false"
                                 style="letter-spacing: 1px;">
-                            <i class="bi bi-person-check-fill me-2 fs-5"></i>
-                            @AuthService.CurrentUser.Name.Split(' ')[0]
+                            <i class="bi bi-person-check-fill me-1 fs-5"></i>
+                            @* Adicionamos uma largura máxima responsiva e truncamento *@
+                            <span class="text-truncate d-inline-block" style="max-width: 60px; font-size: 0.8rem;">
+                                @AuthService.CurrentUser.Name.Split(' ')[0]
+                            </span>
                         </button>
 
                         <ul class="dropdown-menu dropdown-menu-dark rounded-0 border-0 shadow-lg dropdown-menu-end custom-dropdown-bg" aria-labelledby="userMenu">
