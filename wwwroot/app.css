@@ -23,6 +23,9 @@ a, .btn-link {
 h1:focus {
     outline: none;
 }
+h4:focus {
+    margin-top: 2rem;
+}
 
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
@@ -99,8 +102,22 @@ h1:focus {
 
 
 
-    .banner-slide.active {
+.banner-slide.active {
 
-        opacity: 1;
+    opacity: 1;
 
-    }
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(1);
+}
+
+#productCarousel {
+    height: 320px;
+}
+
+#productCarousel .carousel-inner {
+    height: 100%;
+    padding: 15px;
+}
