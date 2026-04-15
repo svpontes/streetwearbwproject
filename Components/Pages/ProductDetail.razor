@@ -22,59 +22,65 @@ else
         <Breadcrumbs Items="breadcrumbItems" />
 
         <div class="row align-items-start mt-4">
-            @* Seção de Imagens *@
             <div class="col-md-6 mb-4 mb-md-0">
                 <div class="p-5 text-center rounded-3 border-0 mb-3" style="background-color: #f8f9fa;">
-                    <img src="@currentMainImageUrl" alt="@product.Name" class="img-fluid" style="max-height: 500px; object-fit: contain; transition: opacity 0.3s;" />
+                    <img src="@GetImageUrl(currentMainImageUrl)"
+                         alt="@product.Name"
+                         class="img-fluid"
+                         style="max-height: 500px; object-fit: contain; transition: opacity 0.3s;"
+                         onerror="this.onerror=null;this.src='/images/placeholder.png';" />
                 </div>
 
                 <div class="row g-2">
                     <div class="col-3">
-                        <img src="@product.ImageUrl" alt="Main view" 
-                             class="img-thumbnail @(currentMainImageUrl == product.ImageUrl ? "border-dark border-2" : "border-0")" 
-                             style="cursor: pointer; background-color: #f8f9fa; aspect-ratio: 1/1; object-fit: contain;" 
-                             @onclick="() => ChangeMainImage(product.ImageUrl)" />
+                        <img src="@GetImageUrl(product.ImageUrl)"
+                             alt="Main view"
+                             class="img-thumbnail @(currentMainImageUrl == GetImageUrl(product.ImageUrl) ? "border-dark border-2" : "border-0")"
+                             style="cursor: pointer; background-color: #f8f9fa; aspect-ratio: 1/1; object-fit: contain;"
+                             onerror="this.onerror=null;this.src='/images/placeholder.png';"
+                             @onclick="() => ChangeMainImage(GetImageUrl(product.ImageUrl))" />
                     </div>
 
-                    @if (product.SecondaryImageUrls != null)
+                    @if (product.SecondaryImageUrls != null && product.SecondaryImageUrls.Any())
                     {
                         @foreach (var imageUrl in product.SecondaryImageUrls)
                         {
+                            var safeImageUrl = GetImageUrl(imageUrl);
+
                             <div class="col-3">
-                                <img src="@imageUrl" alt="Additional view" 
-                                     class="img-thumbnail @(currentMainImageUrl == imageUrl ? "border-dark border-2" : "border-0")" 
-                                     style="cursor: pointer; background-color: #f8f9fa; aspect-ratio: 1/1; object-fit: contain;" 
-                                     @onclick="() => ChangeMainImage(imageUrl)" />
+                                <img src="@safeImageUrl"
+                                     alt="Additional view"
+                                     class="img-thumbnail @(currentMainImageUrl == safeImageUrl ? "border-dark border-2" : "border-0")"
+                                     style="cursor: pointer; background-color: #f8f9fa; aspect-ratio: 1/1; object-fit: contain;"
+                                     onerror="this.onerror=null;this.src='/images/placeholder.png';"
+                                     @onclick="() => ChangeMainImage(safeImageUrl)" />
                             </div>
                         }
                     }
                 </div>
             </div>
 
-            @* Seção de Detalhes *@
             <div class="col-md-6 ps-md-5 text-dark">
                 <h2 class="display-5 fw-bold mb-2 text-uppercase">@product.Name</h2>
-                
-                @* Estrelas Médias do Produto *@
+
                 <div class="mb-3">
                     <StarRating Rating="averageRating" Size="1.2" ShowNumber="true" />
                 </div>
 
                 <h4 class="fw-bold mb-4" style="color: #5f5e5e;">$@((product.Price * quantity).ToString("F2"))</h4>
-                
+
                 <p class="lead mb-4 text-muted">@product.Description</p>
 
-                @* Seleção de Tamanho *@
                 <div class="mb-4">
                     <h5 class="fw-bold mb-3 @(showSizeWarning ? "text-danger" : "") text-uppercase">
                         Size: @(showSizeWarning ? " (Required)" : "")
                     </h5>
                     <div class="d-flex gap-2 flex-wrap">
-                        @if (product.AvailableSizes != null)
+                        @if (product.AvailableSizes != null && product.AvailableSizes.Any())
                         {
                             @foreach (var size in product.AvailableSizes)
                             {
-                                <button class="btn @(selectedSize == size ? "btn-dark" : "btn-outline-dark") px-4 py-2 fw-bold" 
+                                <button class="btn @(selectedSize == size ? "btn-dark" : "btn-outline-dark") px-4 py-2 fw-bold"
                                         @onclick="() => SelectSize(size)">
                                     @size
                                 </button>
@@ -83,7 +89,6 @@ else
                     </div>
                 </div>
 
-                @* Quantidade *@
                 <div class="mb-4">
                     <h5 class="fw-bold mb-3 text-uppercase">Quantity:</h5>
                     <div class="input-group" style="width: 140px;">
@@ -106,7 +111,6 @@ else
             </div>
         </div>
 
-        @* --- SEÇÃO DE REVIEWS --- *@
         <div class="mt-5 border-top pt-5">
             <h3 class="fw-bold text-uppercase mb-4" style="letter-spacing: 2px;">Reviews</h3>
 
@@ -116,11 +120,11 @@ else
                     <div class="card-body p-4 bg-light text-dark">
                         <h6 class="fw-bold text-uppercase mb-3">Leave a review</h6>
                         <StarRating Rating="userRating" IsReadOnly="false" OnRatingChanged="((r) => userRating = (int)r)" Size="1.5" />
-                        
-                        <textarea class="form-control mt-3 rounded-0 border-dark" 
+
+                        <textarea class="form-control mt-3 rounded-0 border-dark"
                                   @bind="userComment" rows="3" placeholder="Share your thoughts on the product..."></textarea>
-                        
-                        <button class="btn btn-dark rounded-0 mt-3 fw-bold px-4 text-uppercase" 
+
+                        <button class="btn btn-dark rounded-0 mt-3 fw-bold px-4 text-uppercase"
                                 @onclick="SaveReview">Submit Review</button>
                     </div>
                 </div>
@@ -172,16 +176,28 @@ else
     private List<BreadcrumbItem> breadcrumbItems = new();
 
     private List<ProductReview> productReviews = new();
-    private int userRating = 5;
+    private int userRating = 3;
     private string userComment = "";
     private double averageRating = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        product = MockData.GetMockProducts().FirstOrDefault(p => p.Id == Id);
+        product = await DbContext.Products.FirstOrDefaultAsync(p => p.Id == Id);
+
         if (product != null)
         {
-            currentMainImageUrl = product.ImageUrl;
+            if (string.IsNullOrWhiteSpace(product.ImageUrl))
+            {
+                product.ImageUrl = "/images/placeholder.png";
+            }
+
+            if (product.AvailableSizes == null || !product.AvailableSizes.Any())
+            {
+                product.AvailableSizes = new List<string> { "S", "M", "L", "XL" };
+            }
+
+            currentMainImageUrl = GetImageUrl(product.ImageUrl);
+
             breadcrumbItems = new List<BreadcrumbItem>
             {
                 new BreadcrumbItem { Text = "HOME", Url = "/" },
@@ -197,30 +213,28 @@ else
 
     private async Task LoadReviews()
     {
-        try 
+        try
         {
             productReviews = await DbContext.ProductReviews
                 .Where(r => r.ProductId == Id)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
-            if (productReviews.Any())
-                averageRating = productReviews.Average(r => r.Rating);
-            else
-                averageRating = 0;
+            averageRating = productReviews.Any()
+                ? productReviews.Average(r => r.Rating)
+                : 0;
         }
-        catch (Exception)
+        catch
         {
             productReviews = new List<ProductReview>();
             averageRating = 0;
         }
-            
-        StateHasChanged();
     }
 
     private async Task SaveReview()
     {
-        if (AuthService?.CurrentUser == null || string.IsNullOrWhiteSpace(userComment)) return;
+        if (AuthService?.CurrentUser == null || string.IsNullOrWhiteSpace(userComment))
+            return;
 
         var newReview = new ProductReview
         {
@@ -237,19 +251,39 @@ else
 
         userComment = "";
         userRating = 5;
-        await LoadReviews(); 
+        await LoadReviews();
     }
 
     private async void HandleCartChanged() => await InvokeAsync(StateHasChanged);
-    private void ChangeMainImage(string url) => currentMainImageUrl = url;
-    private void SelectSize(string size) { selectedSize = size; showSizeWarning = false; }
-    private void IncreaseQuantity() { if (quantity < 10) quantity++; }
-    private void DecreaseQuantity() { if (quantity > 1) quantity--; }
+
+    private void ChangeMainImage(string url) => currentMainImageUrl = GetImageUrl(url);
+
+    private void SelectSize(string size)
+    {
+        selectedSize = size;
+        showSizeWarning = false;
+    }
+
+    private void IncreaseQuantity()
+    {
+        if (quantity < 10) quantity++;
+    }
+
+    private void DecreaseQuantity()
+    {
+        if (quantity > 1) quantity--;
+    }
 
     private async Task AddToCart()
     {
-        if (string.IsNullOrEmpty(selectedSize)) { showSizeWarning = true; return; }
-        if (product == null) return;
+        if (string.IsNullOrEmpty(selectedSize))
+        {
+            showSizeWarning = true;
+            return;
+        }
+
+        if (product == null)
+            return;
 
         CartService.AddToCart(product, selectedSize, quantity);
         showSuccessMessage = true;
@@ -258,5 +292,15 @@ else
         StateHasChanged();
     }
 
-    public void Dispose() => CartService.OnChange -= HandleCartChanged;
+    private static string GetImageUrl(string? url)
+    {
+        return string.IsNullOrWhiteSpace(url)
+            ? "/images/placeholder.png"
+            : url.Trim();
+    }
+
+    public void Dispose()
+    {
+        CartService.OnChange -= HandleCartChanged;
+    }
 }

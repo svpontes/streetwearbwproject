@@ -1,73 +1,119 @@
 @page "/catalog"
+@using Microsoft.EntityFrameworkCore
 @using StreetTshirtApp.Models
 @using StreetTshirtApp.Components
-@rendermode InteractiveServer
 @using StreetTshirtApp.Components.Shared
-
+@inject StreetTshirtApp.Data.ApplicationDbContext DbContext
+@rendermode InteractiveServer
 
 <PageTitle>Catalog - Street T-Shirt</PageTitle>
 
-<div class="container mt-4">
-    <h2 class="mb-4 fw-ligth">Exclusive Collection</h2>
+<section class="container py-5">
+    <h2 class="fw-bold text-uppercase mb-4">Exclusive Collection</h2>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-        @foreach (var product in products)
-        {
-            <div class="col">
-                <div class="card h-100 shadow-sm border-secondary border-opacity-10 rounded-2" style="background-color: #f8f9fa;">
-                    
-                    <a href="/product/@product.Id" class="text-decoration-none">
-                        <div class="p-4 text-center">
-                            <img src="@product.ImageUrl" alt="@product.Name" class="img-fluid" style="max-height: 220px; object-fit: contain;" />
-                        </div>
-                    </a>
-                    
-                    <div class="card-body d-flex flex-column text-dark">
+    @if (products == null || !products.Any())
+    {
+        <div class="text-center py-5">
+            <p class="lead text-muted mb-0">No products available yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var product in products)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
                         <a href="/product/@product.Id" class="text-decoration-none text-dark">
-                            <h5 class="card-title fw-bold">@product.Name</h5>
+                            <div class="p-4 text-center" style="background-color:#f8f9fa;">
+                                <img src="@GetImageUrl(product.ImageUrl)"
+                                     alt="@product.Name"
+                                     class="img-fluid"
+                                     style="height: 320px; object-fit: contain;"
+                                     onerror="this.onerror=null;this.src='/images/placeholder.png';" />
+                            </div>
                         </a>
-                        
-                        <p class="card-text small text-muted flex-grow-1">@product.Description</p>
-                        
-                        <div class="mb-3">
-                            @foreach (var size in product.AvailableSizes)
+
+                        <div class="card-body d-flex flex-column">
+                            <a href="/product/@product.Id" class="text-decoration-none text-dark">
+                                <h5 class="fw-bold text-uppercase mb-2">@product.Name</h5>
+                            </a>
+
+                            <p class="text-muted small flex-grow-1">@product.Description</p>
+
+                            @if (product.AvailableSizes != null && product.AvailableSizes.Any())
                             {
-                                <span class="badge bg-dark me-2">@size</span>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    @foreach (var size in product.AvailableSizes)
+                                    {
+                                        <span class="badge text-bg-light border text-dark">@size</span>
+                                    }
+                                </div>
                             }
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center mt-auto">
-                            <span class="fs-5 fw-bold" style="color: #747474;">$@product.Price.ToString("0.00")</span>
-                            <button class="btn btn-dark btn-sm fw-bold rounded-0" @onclick="() => OpenQuickView(product)">
-                                     ADD +
-                            </button>
+
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <span class="fw-bold">$@product.Price.ToString("0.00")</span>
+
+                                <button class="btn btn-dark rounded-0"
+                                        @onclick="() => OpenQuickView(product)">
+                                    ADD to Cart
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-        }
-    </div>
-</div>
+            }
+        </div>
+    }
+</section>
 
-<ProductQuickView Show="isPanelOpen" Product="selectedProduct" OnClose="() => isPanelOpen = false" />
+<ProductQuickView Show="isPanelOpen"
+                  Product="selectedProduct"
+                  OnClose="HandleClose" />
 
 @code {
     private List<Product> products = new();
-
-    protected override void OnInitialized()
-    {
-        
-        products = MockData.GetMockProducts();
-    }
     private bool isPanelOpen = false;
     private Product? selectedProduct;
 
+    protected override async Task OnInitializedAsync()
+    {
+        products = await DbContext.Products
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+
+        foreach (var product in products)
+        {
+            if (string.IsNullOrWhiteSpace(product.ImageUrl))
+            {
+                product.ImageUrl = "/images/placeholder.png";
+            }
+
+            if (product.AvailableSizes == null || !product.AvailableSizes.Any())
+            {
+                product.AvailableSizes = new List<string> { "S", "M", "L", "XL" };
+            }
+        }
+    }
+
     private void OpenQuickView(Product product)
     {
-        
         selectedProduct = product;
         isPanelOpen = true;
         StateHasChanged();
+    }
+
+    private void HandleClose()
+    {
+        isPanelOpen = false;
+        selectedProduct = null;
+        StateHasChanged();
+    }
+
+    private static string GetImageUrl(string? url)
+    {
+        return string.IsNullOrWhiteSpace(url)
+            ? "/images/placeholder.png"
+            : url.Trim();
     }
 }

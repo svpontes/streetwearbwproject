@@ -2,12 +2,13 @@
 @rendermode InteractiveServer
 @using StreetTshirtApp.Models
 @using StreetTshirtApp.Components.Shared
+@using StreetTshirtApp.Data
+@using Microsoft.EntityFrameworkCore
 @using System.Timers
 @implements IDisposable
+@inject ApplicationDbContext DbContext
 
 <PageTitle>Street T-Shirt - Official Store</PageTitle>
-
-
 
 <section class="position-relative overflow-hidden p-0 m-0 text-center bg-dark w-100" style="height: 600px;">
     @foreach (var img in bannerImages)
@@ -36,7 +37,11 @@
                     
                     <a href="/product/@product.Id" class="text-decoration-none">
                         <div class="p-4 text-center">
-                            <img src="@product.ImageUrl" alt="@product.Name" class="img-fluid" style="max-height: 220px; object-fit: contain;" />
+                            <img src="@GetImageUrl(product.ImageUrl)"
+                                 alt="@product.Name"
+                                 class="img-fluid"
+                                 style="max-height: 220px; object-fit: contain;"
+                                 onerror="this.onerror=null;this.src='/images/placeholder.png';" />
                         </div>
                     </a>
                     
@@ -68,20 +73,34 @@
     private Product? selectedProduct;
 
     private int currentImageIndex = 0;
-    private List<string> bannerImages = new() 
-    { 
-        "/images/banner-principal.png", 
-        "/images/bkg-banner.png" 
+    private List<string> bannerImages = new()
+    {
+        "/images/banner-principal.png",
+        "/images/bkg-banner.png"
     };
 
     private Timer? timer;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // 1. Carrega os produtos (Não esqueça desta linha!)
-        featuredProducts = MockData.GetMockProducts();
+        featuredProducts = await DbContext.Products
+            .OrderByDescending(p => p.Id)
+            .Take(8)
+            .ToListAsync();
 
-        // 2. Configura o Timer do Banner
+        foreach (var product in featuredProducts)
+        {
+            if (string.IsNullOrWhiteSpace(product.ImageUrl))
+            {
+                product.ImageUrl = "/images/placeholder.png";
+            }
+
+            if (product.AvailableSizes == null || !product.AvailableSizes.Any())
+            {
+                product.AvailableSizes = new List<string> { "S", "M", "L", "XL" };
+            }
+        }
+
         timer = new Timer(5000);
         timer.Elapsed += (sender, e) => ChangeImage();
         timer.AutoReset = true;
@@ -106,6 +125,13 @@
         isPanelOpen = false;
         selectedProduct = null;
         StateHasChanged();
+    }
+
+    private static string GetImageUrl(string? url)
+    {
+        return string.IsNullOrWhiteSpace(url)
+            ? "/images/placeholder.png"
+            : url.Trim();
     }
 
     public void Dispose()

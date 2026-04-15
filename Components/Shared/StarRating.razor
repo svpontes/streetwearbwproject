@@ -1,10 +1,26 @@
 <div class="d-flex align-items-center gap-1">
     @for (int i = 1; i <= 5; i++)
     {
-        int starIndex = i;
-        <i class="bi @(starIndex <= Rating ? "bi-star-fill" : "bi-star")" 
-           style="cursor: @(IsReadOnly ? "default" : "pointer"); color: @(starIndex <= Rating ? "#FFD700" : "#ccc"); font-size: @(Size)rem;"
-           @onclick="() => HandleClick(starIndex)"></i>
+    int starIndex = i;
+    var displayRating = hoverRating != 0 ? hoverRating : Rating;
+
+    string iconClass;
+
+    if (starIndex <= Math.Floor(displayRating))
+        iconClass = "bi-star-fill";
+    else if (starIndex - displayRating <= 0.5)
+        iconClass = "bi-star-half";
+    else
+        iconClass = "bi-star";
+
+    <i class="bi @iconClass"
+       style="cursor: @(IsReadOnly ? "default" : "pointer");
+              color: @(starIndex <= displayRating ? "#FFD700" : "#ccc");
+              font-size: @(Size)rem;"
+       @onclick="() => HandleClick(starIndex)"
+       @onmouseover="() => hoverRating = starIndex"
+       @onmouseout="() => hoverRating = 0">
+    </i>
     }
     @if (ShowNumber)
     {
@@ -18,12 +34,14 @@
     [Parameter] public double Size { get; set; } = 1.2;
     [Parameter] public bool ShowNumber { get; set; } = false;
     [Parameter] public EventCallback<int> OnRatingChanged { get; set; }
+    private int hoverRating = 0;
 
     private async Task HandleClick(int newRating)
     {
         if (!IsReadOnly)
         {
             Rating = newRating;
+            hoverRating = 0;
             await OnRatingChanged.InvokeAsync(newRating);
         }
     }

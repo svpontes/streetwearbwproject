@@ -18,13 +18,13 @@
                 
                 @* Ícones Sociais - Centralizados no Mobile *@
                 <div class="d-flex justify-content-center justify-content-md-start gap-3 mt-3 mb-4">
-                    <a href="https://www.instagram.com/bluntwear" target="_blank" rel="noopener noreferrer" class="text-white fs-4 hover-dim">
+                    <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="text-white fs-4 hover-dim">
                         <i class="bi bi-instagram"></i>
                     </a>
-                    <a href="https://www.tiktok.com/@@bluntwear" target="_blank" rel="noopener noreferrer" class="text-white fs-4 hover-dim">
+                    <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="text-white fs-4 hover-dim">
                         <i class="bi bi-tiktok"></i>
                     </a>
-                    <a href="https://www.facebook.com/bluntwear" target="_blank" rel="noopener noreferrer" class="text-white fs-4 hover-dim">
+                    <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="text-white fs-4 hover-dim">
                         <i class="bi bi-facebook"></i>
                     </a>
                 </div>
@@ -40,9 +40,10 @@
 
             @* Coluna 3: Support *@
             <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mt-3">
-                <h6 class="text-uppercase mb-4 fw-bold small">Support</h6>
-                <p><a href="/shipping" class="text-secondary text-decoration-none small hover-white">Shipping Policy</a></p>
-                <p><a href="/returns" class="text-secondary text-decoration-none small hover-white">Returns & Exchanges</a></p>
+                <h6 class="text-uppercase mb-4 fw-bold small">Support</h6><p><a href="/shipping-policy" class="text-secondary text-decoration-none small hover-white">Shipping Policy</a></p>
+                <p><a href="/returns-exchanges" class="text-secondary text-decoration-none small hover-white">Returns & Exchanges</a></p>
+                <p><a href="/privacy-policy" class="text-secondary text-decoration-none small hover-white">Privacy Policy</a></p>
+                <p><a href="/cookies" class="text-secondary text-decoration-none small hover-white">Cookies Policy</a></p>
                 <p><a href="/contact" class="text-secondary text-decoration-none small hover-white">Contact Us</a></p>
             </div>
 
@@ -87,6 +88,7 @@
                 <i class="bi bi-credit-card-2-back me-2 fs-5 text-secondary"></i>
                 <i class="bi bi-paypal me-2 fs-5 text-secondary"></i>
                 <i class="bi bi-qr-code fs-5 text-secondary"></i>
+                
             </div>
         </div>
     </div>
@@ -122,9 +124,15 @@
             DbContext.Subscribers.Add(new NewsletterSubscriber { Email = emailToValidate });
             await DbContext.SaveChangesAsync();
 
-            statusMessage = "Welcome to the family!";
+            statusMessage = "Welcome to the BluntWear family!";
             isError = false;
-            subscriberEmail = ""; 
+            subscriberEmail = "";
+            StateHasChanged(); 
+            _ = Task.Delay(2000).ContinueWith(_ => 
+            {
+                statusMessage = "";
+                InvokeAsync(StateHasChanged);
+            });
         }
         catch (Exception)
         {

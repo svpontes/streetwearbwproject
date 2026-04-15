@@ -18,47 +18,55 @@
     }
     else
     {
+        <!-- FORM -->
         <div class="card rounded-0 mb-4 shadow-sm">
             <div class="card-header bg-dark text-white text-uppercase small fw-bold">
                 @(editingProduct.Id == 0 ? "Add New Product" : "Edit Product")
             </div>
+
             <div class="card-body">
                 <EditForm Model="@editingProduct" OnValidSubmit="SaveProduct">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
                     <div class="row g-3">
+
                         <div class="col-md-4">
                             <label class="form-label small fw-bold">Product Name</label>
-                            <InputText @bind-Value="editingProduct.Name" class="form-control rounded-0" />
+                            <InputText @bind-Value="editingProduct.Name"
+                                       class="form-control rounded-0" />
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label small fw-bold">Price</label>
-                            <InputNumber @bind-Value="editingProduct.Price" class="form-control rounded-0" />
+                            <InputNumber @bind-Value="editingProduct.Price"
+                                         class="form-control rounded-0" />
                         </div>
 
                         <div class="col-md-5">
                             <label class="form-label small fw-bold">Image Path</label>
                             <InputText @bind-Value="editingProduct.ImageUrl"
                                        class="form-control rounded-0"
-                                       placeholder="/images/tshirt-front.png" />
+                                       placeholder="/images/imageF1.png" />
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label small fw-bold">Additional Image Paths</label>
-                            <InputTextArea @bind-Value="secondaryImagesText"
-                                           class="form-control rounded-0"
-                                           rows="4"
-                                           placeholder="/images/tshirt-back.png
-                                            /images/tshirt-male-model.png
-                                            /images/tshirt-female-model.png" />
-                            <small class="text-muted">One image path per line.</small>
+                                <label class="form-label small fw-bold">Additional Image Paths</label>
+
+                                <InputTextArea @bind-Value="secondaryImagesText"
+                                            class="form-control rounded-0"
+                                            rows="4" />
+
+                                <small class="text-muted d-block mt-2">One image path per line.</small>
+                                <small class="text-muted d-block">Example: /images/imageB1.png</small>
+                                <small class="text-muted d-block">Example: /images/imageFm1.png</small>
+                                <small class="text-muted d-block">Example: /images/imageBf1.png</small>
                         </div>
 
                         <div class="col-12">
                             <label class="form-label small fw-bold">Description</label>
-                            <InputTextArea @bind-Value="editingProduct.Description" class="form-control rounded-0" />
+                            <InputTextArea @bind-Value="editingProduct.Description"
+                                           class="form-control rounded-0" />
                         </div>
 
                         <div class="col-12 d-flex gap-2">
@@ -66,17 +74,22 @@
                                 @(editingProduct.Id == 0 ? "Create Product" : "Update Product")
                             </button>
 
-                            <button type="button" class="btn btn-outline-secondary rounded-0" @onclick="ResetForm">
+                            <button type="button"
+                                    class="btn btn-outline-secondary rounded-0"
+                                    @onclick="ResetForm">
                                 Cancel
                             </button>
                         </div>
+
                     </div>
                 </EditForm>
             </div>
         </div>
 
+        <!-- SEARCH + TABLE -->
         <div class="card rounded-0 shadow-sm">
             <div class="card-body">
+
                 <div class="row g-2 mb-3">
                     <div class="col-md-8">
                         <input class="form-control rounded-0"
@@ -86,7 +99,8 @@
                     </div>
 
                     <div class="col-md-4">
-                        <button class="btn btn-outline-dark rounded-0 w-100" @onclick="LoadProducts">
+                        <button class="btn btn-outline-dark rounded-0 w-100"
+                                @onclick="LoadProducts">
                             Refresh
                         </button>
                     </div>
@@ -94,6 +108,7 @@
 
                 <div class="table-responsive">
                     <table class="table border align-middle">
+
                         <thead class="table-dark small text-uppercase">
                             <tr>
                                 <th>ID</th>
@@ -109,14 +124,17 @@
                             {
                                 <tr @key="p.Id">
                                     <td>@p.Id</td>
+
                                     <td>
                                         <img src="@GetImageUrl(p.ImageUrl)"
                                              alt="@p.Name"
                                              style="width:50px;height:50px;object-fit:cover;display:block;background-color:#f8f9fa;"
                                              onerror="this.onerror=null;this.src='/images/placeholder.png';" />
                                     </td>
+
                                     <td>@p.Name</td>
                                     <td>@p.Price.ToString("C")</td>
+
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary me-2"
                                                 @onclick="() => EditProduct(p)">
@@ -140,6 +158,7 @@
                                 </tr>
                             }
                         </tbody>
+
                     </table>
                 </div>
 
@@ -151,13 +170,15 @@
 @code {
     private List<Product> products = new();
     private Product editingProduct = new();
+
     private string searchTerm = "";
     private string secondaryImagesText = "";
 
     private IEnumerable<Product> FilteredProducts =>
         string.IsNullOrWhiteSpace(searchTerm)
             ? products
-            : products.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+            : products.Where(p =>
+                p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
@@ -209,8 +230,7 @@
         else
         {
             var dbProduct = await DbContext.Products.FindAsync(editingProduct.Id);
-            if (dbProduct == null)
-                return;
+            if (dbProduct == null) return;
 
             dbProduct.Name = editingProduct.Name;
             dbProduct.Description = editingProduct.Description;
@@ -227,8 +247,7 @@
     private async Task DeleteProduct(int id)
     {
         var product = await DbContext.Products.FindAsync(id);
-        if (product == null)
-            return;
+        if (product == null) return;
 
         DbContext.Products.Remove(product);
         await DbContext.SaveChangesAsync();
