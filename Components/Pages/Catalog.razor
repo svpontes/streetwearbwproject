@@ -6,11 +6,18 @@
 @inject StreetTshirtApp.Data.ApplicationDbContext DbContext
 @rendermode InteractiveServer
 
+@* --- PRODUCT CATALOG COMPONENT ---
+   Purpose: Displays the full collection of available products.
+   Includes features like dynamic image rendering, size badges, 
+   and an integrated Quick View purchasing system.
+*@
+
 <PageTitle>Catalog - Street T-Shirt</PageTitle>
 
 <section class="container py-5">
     <h2 class="fw-bold text-uppercase mb-4">Exclusive Collection</h2>
 
+    @* --- EMPTY STATE HANDLER --- *@
     @if (products == null || !products.Any())
     {
         <div class="text-center py-5">
@@ -19,11 +26,13 @@
     }
     else
     {
+        @* --- PRODUCT GRID --- *@
         <div class="row g-4">
             @foreach (var product in products)
             {
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 border-0 shadow-sm">
+                        @* Navigation link to the full product detail page *@
                         <a href="/product/@product.Id" class="text-decoration-none text-dark">
                             <div class="p-4 text-center" style="background-color:#f8f9fa;">
                                 <img src="@GetImageUrl(product.ImageUrl)"
@@ -41,6 +50,7 @@
 
                             <p class="text-muted small flex-grow-1">@product.Description</p>
 
+                            @* --- SIZE AVAILABILITY BADGES --- *@
                             @if (product.AvailableSizes != null && product.AvailableSizes.Any())
                             {
                                 <div class="d-flex flex-wrap gap-2 mb-3">
@@ -51,9 +61,11 @@
                                 </div>
                             }
 
+                            @* --- ACTIONS AREA --- *@
                             <div class="d-flex justify-content-between align-items-center mt-auto">
                                 <span class="fw-bold">$@product.Price.ToString("0.00")</span>
 
+                                @* Triggers the Quick View panel instead of full navigation *@
                                 <button class="btn btn-dark rounded-0"
                                         @onclick="() => OpenQuickView(product)">
                                     ADD to Cart
@@ -67,6 +79,7 @@
     }
 </section>
 
+@* Shared component for rapid purchasing without page navigation *@
 <ProductQuickView Show="isPanelOpen"
                   Product="selectedProduct"
                   OnClose="HandleClose" />
@@ -76,6 +89,10 @@
     private bool isPanelOpen = false;
     private Product? selectedProduct;
 
+    /// <summary>
+    /// Lifecycle method: Fetches products from the database alphabetically by name.
+    /// Includes data sanitization for images and sizes.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         products = await DbContext.Products
@@ -84,11 +101,13 @@
 
         foreach (var product in products)
         {
+            // Ensure every product has a fallback image if the URL is missing
             if (string.IsNullOrWhiteSpace(product.ImageUrl))
             {
                 product.ImageUrl = "/images/placeholder.png";
             }
 
+            // Provide default sizes if none are defined in the database
             if (product.AvailableSizes == null || !product.AvailableSizes.Any())
             {
                 product.AvailableSizes = new List<string> { "S", "M", "L", "XL" };
@@ -96,6 +115,9 @@
         }
     }
 
+    /// <summary>
+    /// Opens the Quick View side panel for the selected product.
+    /// </summary>
     private void OpenQuickView(Product product)
     {
         selectedProduct = product;
@@ -103,6 +125,9 @@
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Resets state and closes the side panel.
+    /// </summary>
     private void HandleClose()
     {
         isPanelOpen = false;
@@ -110,6 +135,9 @@
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Validates image URLs and returns a placeholder path if empty.
+    /// </summary>
     private static string GetImageUrl(string? url)
     {
         return string.IsNullOrWhiteSpace(url)

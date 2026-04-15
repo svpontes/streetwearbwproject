@@ -9,6 +9,9 @@
 @rendermode InteractiveServer
 
 <div class="container mt-5 pt-5 pb-5" style="min-height: 80vh;">
+    @* --- AUTHENTICATION CHECK --- 
+       Ensures only logged-in users can access the profile data.
+    *@
     @if (AuthService.CurrentUser == null)
     {
         <div class="text-center mt-5">
@@ -19,11 +22,13 @@
     else
     {
         <div class="row g-5">
+            @* --- LEFT COLUMN: PROFILE MANAGEMENT --- *@
             <div class="col-lg-4">
                 <div class="card border-dark rounded-0 shadow-sm">
                     <div class="card-body p-4">
                         @if (!isEditing)
                         {
+                            @* DISPLAY MODE: Shows current user information *@
                             <div class="text-center mb-4">
                                 <div class="bg-black text-white d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px;">
                                     <i class="bi bi-person fs-1"></i>
@@ -36,8 +41,7 @@
 
                             <div class="mb-3">
                                 <label class="x-small text-muted text-uppercase fw-bold">Phone</label>
-                                <p class="m-0 small text-secondary">
-                                    @($"{AuthService.CurrentUser?.ZipCode} {AuthService.CurrentUser?.City}".Trim())</p>
+                                <p class="m-0 small text-secondary">@AuthService.CurrentUser?.Phone</p>
                             </div>
 
                             <div class="mb-3">
@@ -52,6 +56,7 @@
                         }
                         else
                         {
+                            @* EDIT MODE: Form to update user profile details *@
                             <h6 class="fw-bold text-uppercase mb-4" style="letter-spacing: 1px;">Edit Personal Info</h6>
 
                             <div class="mb-3">
@@ -98,11 +103,13 @@
                 </div>
             </div>
 
+            @* --- RIGHT COLUMN: ORDER HISTORY --- *@
             <div class="col-lg-8">
                 <h4 class="fw-bold text-uppercase mb-4" style="letter-spacing: 2px;">Order History</h4>
 
                 @if (userOrders == null || !userOrders.Any())
                 {
+                    @* Feedback for users with zero transactions *@
                     <div class="p-5 border text-center bg-light">
                         <i class="bi bi-bag-x fs-1 text-muted d-block mb-3"></i>
                         <p class="text-muted">You haven't made any purchases yet.</p>
@@ -111,6 +118,7 @@
                 }
                 else
                 {
+                    @* Iterate through historical orders retrieved from the database *@
                     @foreach (var order in userOrders)
                     {
                         <div class="card border-dark rounded-0 mb-4">
@@ -122,9 +130,10 @@
                             <div class="card-body">
                                 @if (order.OrderItems != null && order.OrderItems.Any())
                                 {
+                                    @* Render each item contained within the serialized order snapshot *@
                                     @foreach (var item in order.OrderItems)
                                     {
-                                        <div class="d-flex align-items-center mt-3  pb-3">
+                                        <div class="d-flex align-items-center mt-3 pb-3 border-bottom">
                                             <img src="@item.ImageUrl"
                                                  alt="@item.ProductName"
                                                  style="width: 80px; height: 80px; object-fit: cover;"
@@ -155,6 +164,7 @@
 </div>
 
 @code {
+    // Local state variables for order tracking and profile editing
     private List<Order> userOrders = new();
     private string editName = "";
     private string editPhone = "";
@@ -165,32 +175,40 @@
     private bool isEditing = false;
     private string statusMessage = "";
 
+    /// <summary>
+    /// Lifecycle method to load the user's order history and initialize form fields.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         if (AuthService.CurrentUser != null)
         {
-            SyncFields();
+            SyncFields(); // Populate local variables with CurrentUser data
 
+            // Query orders from the database matching the user's email
             userOrders = await DbContext.Orders
                 .Where(o => o.CustomerEmail == AuthService.CurrentUser!.Email)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
+            // Deserialize order items for each order to display product details
             foreach (var order in userOrders)
             {
                 if (!string.IsNullOrWhiteSpace(order.SerializedItems))
                 {
-                    order.OrderItems = JsonSerializer.Deserialize<List<OrderItem>>(order.SerializedItems)
-                        ?? new List<OrderItem>();
-                }
-                else
-                {
-                    order.OrderItems = new List<OrderItem>();
+                    try 
+                    {
+                        order.OrderItems = JsonSerializer.Deserialize<List<OrderItem>>(order.SerializedItems)
+                            ?? new List<OrderItem>();
+                    }
+                    catch { order.OrderItems = new List<OrderItem>(); }
                 }
             }
         }
     }
 
+    /// <summary>
+    /// Synchronizes local editing variables with the data currently stored in the AuthService.
+    /// </summary>
     private void SyncFields()
     {
         editName = AuthService.CurrentUser?.Name ?? "";
@@ -201,6 +219,9 @@
         editCountry = AuthService.CurrentUser?.Country ?? "";
     }
 
+    /// <summary>
+    /// Toggles the profile between view and edit modes.
+    /// </summary>
     private void ToggleEdit()
     {
         isEditing = !isEditing;
@@ -208,12 +229,15 @@
         statusMessage = "";
     }
 
+    /// <summary>
+    /// Persists profile changes to the database and updates the active session.
+    /// </summary>
     private async Task SaveChanges()
     {
         var userId = AuthService.CurrentUser?.Id;
-        if (userId == null)
-            return;
+        if (userId == null) return;
 
+        // Update database record
         var user = await DbContext.Users.FindAsync(userId);
         if (user != null)
         {
@@ -226,6 +250,7 @@
 
             await DbContext.SaveChangesAsync();
 
+            // Synchronize the current session in memory
             AuthService.CurrentUser!.Name = editName;
             AuthService.CurrentUser.Phone = editPhone;
             AuthService.CurrentUser.Address = editAddress;
@@ -236,6 +261,7 @@
             statusMessage = "Profile synchronized!";
             StateHasChanged();
 
+            // Automatic visual feedback delay
             await Task.Delay(1000);
             isEditing = false;
             statusMessage = "";

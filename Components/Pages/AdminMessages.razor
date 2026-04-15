@@ -6,13 +6,22 @@
 @inject NavigationManager NavManager
 @inject ApplicationDbContext DbContext
 
+@* --- ADMIN CONTACT LOGS ---
+   Purpose: Provides a read-only historical record of all customer inquiries.
+   This serves as a legal and operational log for customer support tracking.
+*@
+
 <div class="container mt-5">
+    @* --- HEADER SECTION --- *@
     <div class="d-flex justify-content-between align-items-center mb-5">
-    <h2 class="fw-bold text-uppercase mb-4">Contact Logs (Legal Record)</h2>
-    <a href="/admin" class="btn btn-outline-dark btn-sm rounded-0 px-4 text-uppercase fw-bold">
+        <h2 class="fw-bold text-uppercase mb-4">Contact Logs (Legal Record)</h2>
+        @* Dashboard Return Button *@
+        <a href="/admin" class="btn btn-outline-dark btn-sm rounded-0 px-4 text-uppercase fw-bold">
             <i class="bi bi-arrow-left me-2"></i> Dashboard
         </a>
     </div>
+
+    @* --- DATA TABLE --- *@
     <div class="table-responsive">
         <table class="table table-hover border">
             <thead class="table-dark">
@@ -25,12 +34,15 @@
                 </tr>
             </thead>
             <tbody>
+                @* Iterate through messages retrieved from the database *@
                 @foreach (var msg in messages)
                 {
                     <tr>
+                        @* Formatted timestamp for readability *@
                         <td class="small">@msg.CreatedAt.ToString("g")</td>
                         <td class="fw-bold">@msg.Name</td>
                         <td>@msg.Email</td>
+                        @* Subject displayed as a Badge for visual categorization *@
                         <td><span class="badge bg-secondary">@msg.Subject</span></td>
                         <td>@msg.Message</td>
                     </tr>
@@ -41,18 +53,23 @@
 </div>
 
 @code {
+    // Internal list to hold the communication records
     private List<ContactMessage> messages = new();
 
+    /// <summary>
+    /// Lifecycle Method: Implements security checks and data retrieval.
+    /// Ensures that only authenticated Administrators can access the message logs.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
-       
+        // 1. SECURITY AUDIT: Verify Admin role before proceeding
         if (!Auth.IsAdmin)
         {
             NavManager.NavigateTo("/");
-            return; 
+            return; // Prevent data leak by terminating the execution thread
         }
 
-        
+        // 2. DATA RETRIEVAL: Fetch all messages sorted by the most recent entry first
         messages = await DbContext.ContactMessages
             .OrderByDescending(m => m.CreatedAt)
             .ToListAsync();

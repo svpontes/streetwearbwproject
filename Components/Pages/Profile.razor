@@ -2,8 +2,16 @@
 @inject StreetTshirtApp.Services.AuthService AuthService
 @inject NavigationManager NavManager
 
+@* --- LEGACY PROFILE PAGE ---
+   Purpose: This component serves as the original, read-only view for user data.
+   It provides a summary of account details and a vertical feed of order history.
+*@
+
 <PageTitle>My Profile - BluntWear</PageTitle>
 
+@* --- SESSION VALIDATION --- 
+   Checks if a user is authenticated before rendering sensitive information.
+*@
 @if (AuthService.CurrentUser == null)
 {
     <div class="container text-center mt-5">
@@ -15,7 +23,8 @@ else
 {
     <div class="container mt-5 mb-5">
         <div class="row">
-            @* Coluna da Esquerda: Informações do Cliente *@
+            
+            @* --- LEFT COLUMN: ACCOUNT OVERVIEW --- *@
             <div class="col-md-4 mb-4">
                 <div class="card bg-white text-dark rounded-0 border p-4 shadow-sm">
                     <div class="text-center mb-4">
@@ -26,6 +35,7 @@ else
                     </h3>
                     <p class="text-secondary text-center small mb-4">@AuthService.CurrentUser.Email</p>
 
+                    @* Customer Contact Details *@
                     <div class="user-info small mb-4">
                         <p class="mb-1"><strong>PHONE</strong><br />@AuthService.CurrentUser.Phone</p>
                         <p class="mb-0"><strong>ADDRESS</strong><br />@AuthService.CurrentUser.Address</p>
@@ -33,15 +43,17 @@ else
 
                     <hr />
 
+                    @* Account Management Actions *@
                     <button class="btn btn-dark btn-sm w-100 rounded-0 fw-bold mb-2">UPDATE PROFILE</button>
                     <button class="btn btn-outline-danger btn-sm w-100 rounded-0 fw-bold" @onclick="Logout">LOGOUT</button>
                 </div>
             </div>
 
-            @* Coluna da Direita: Histórico de Compras Detalhado *@
+            @* --- RIGHT COLUMN: ORDER HISTORY FEED --- *@
             <div class="col-md-8">
                 <h2 class="fw-bold mb-4" style="letter-spacing: 2px;">ORDER HISTORY</h2>
 
+                @* Empty State Handling *@
                 @if (AuthService.CurrentUser.OrderHistory == null || !AuthService.CurrentUser.OrderHistory.Any())
                 {
                     <div class="p-5 border border-secondary text-center">
@@ -51,21 +63,25 @@ else
                 }
                 else
                 {
+                    @* Iterate through orders sorted by the most recent date first *@
                     @foreach (var order in AuthService.CurrentUser.OrderHistory.OrderByDescending(o => o.OrderDate))
                     {
                         <div class="order-card mb-4 border p-3 shadow-sm">
+                            @* Order Header: Displays Order ID and Financial Total *@
                             <div class="d-flex justify-content-between fw-bold border-bottom pb-2 mb-2 bg-light p-2">
-                                <span>PEDIDO #@order.Id.ToString("D5")</span>
+                                <span>ORDER #@order.Id.ToString("D5")</span>
                                 <span>TOTAL: @order.TotalAmount.ToString("C")</span>
                             </div>
 
-                            @* Iteração sobre os itens desserializados do JSON *@
+                            @* --- ORDER ITEMS LOGIC ---
+                               Iterates through the snapshot of items purchased in this specific transaction.
+                            *@
                             @if (order.OrderItems != null && order.OrderItems.Any())
                             {
                                 @foreach (var item in order.OrderItems)
                                 {
                                     <div class="d-flex align-items-center mt-3 border-bottom pb-3">
-                                        @* Exibição da Imagem Dinâmica *@
+                                        @* Dynamic Image display with fallback for deleted/missing assets *@
                                         <img src="@item.ImageUrl" alt="@item.ProductName"
                                              style="width: 80px; height: 80px; object-fit: cover;" 
                                              class="me-3 border" 
@@ -74,7 +90,7 @@ else
                                         <div class="flex-grow-1">
                                             <p class="mb-0 fw-bold text-uppercase">@item.ProductName</p>
                                             <small class="text-muted d-block">
-                                                TAMANHO: @item.Size | QTD: @item.Quantity
+                                                SIZE: @item.Size | QTY: @item.Quantity
                                             </small>
                                             <span class="fw-bold small">@item.Price.ToString("C")</span>
                                         </div>
@@ -83,11 +99,12 @@ else
                             }
                             else
                             {
-                                <p class="text-muted small p-2">Detalhes não disponíveis para este pedido.</p>
+                                <p class="text-muted small p-2">Details not available for this order.</p>
                             }
                             
+                            @* Transaction Metadata Footer *@
                             <div class="text-end mt-2">
-                                <small class="text-muted">Data: @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</small>
+                                <small class="text-muted">Date: @order.OrderDate.ToString("MM/dd/yyyy HH:mm")</small>
                             </div>
                         </div>
                     }
@@ -98,6 +115,7 @@ else
 }
 
 <style>
+    /* UI Hover Effects for better user engagement */
     .order-card {
         background-color: #fff;
         transition: transform 0.2s ease-in-out;
@@ -108,7 +126,6 @@ else
         transform: translateY(-2px);
     }
 
-    
     .text-muted {
         font-size: 0.8rem;
         letter-spacing: 0.5px;
@@ -116,6 +133,10 @@ else
 </style>
 
 @code {
+    /// <summary>
+    /// Terminates the current user session and redirects to the Home page.
+    /// forceLoad: true ensures the application state is completely cleared.
+    /// </summary>
     private void Logout()
     {
         AuthService.Logout();

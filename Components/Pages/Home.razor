@@ -8,16 +8,24 @@
 @implements IDisposable
 @inject ApplicationDbContext DbContext
 
+@* --- HOME PAGE ---
+   Purpose: The main landing page of the store. Features a dynamic hero banner, 
+   a curated list of featured products, and integration with the Quick View panel.
+*@
+
 <PageTitle>Street T-Shirt - Official Store</PageTitle>
 
+@* --- HERO SECTION: DYNAMIC BANNER --- *@
 <section class="position-relative overflow-hidden p-0 m-0 text-center bg-dark w-100" style="height: 600px;">
     @foreach (var img in bannerImages)
     {
+        @* Logic to toggle the 'active' class based on the Timer interval *@
         <div class="banner-slide @(currentImageIndex == bannerImages.IndexOf(img) ? "active" : "")"
              style="background-image: url('@img');">
         </div>
     }
 
+    @* Hero Text Overlay *@
     <div class="col-md-5 p-lg-5 mx-auto my-5 position-absolute top-50 start-50 translate-middle text-white" 
          style="background-color: rgba(0,0,0,0.2); border-radius: 0; z-index: 10;">
         <h1 class="display-4 fw-bold text-uppercase" style="letter-spacing: 3px;">Urban Exclusive</h1>
@@ -26,6 +34,7 @@
     </div>
 </section>
 
+@* --- FEATURED PRODUCTS GRID --- *@
 <div id="catalog" class="container mt-5 mb-5">
     <h2 class="mb-4 fw-bold text-center">Featured Designs</h2>
 
@@ -35,6 +44,7 @@
             <div class="col">
                 <div class="card h-100 shadow-sm border-0.5" style="background-color: #f8f9fa;">
                     
+                    @* Product Image with click-through to details *@
                     <a href="/product/@product.Id" class="text-decoration-none">
                         <div class="p-4 text-center">
                             <img src="@GetImageUrl(product.ImageUrl)"
@@ -54,6 +64,7 @@
                         
                         <div class="d-flex justify-content-between align-items-center mt-auto">
                             <span class="fs-5 fw-bold" style="color: #747474;">$@product.Price.ToString("0.00")</span>
+                            @* Trigger for the Quick View Offcanvas panel *@
                             <button class="btn btn-dark btn-sm fw-bold rounded-0 px-3" @onclick="() => OpenQuickView(product)">
                                 ADD to Cart
                             </button>
@@ -65,6 +76,7 @@
     </div>
 </div>
 
+@* --- SHARED COMPONENTS --- *@
 <ProductQuickView Show="isPanelOpen" Product="selectedProduct" OnClose="HandleClose" />
 
 @code {
@@ -72,6 +84,7 @@
     private bool isPanelOpen = false;
     private Product? selectedProduct;
 
+    // Banner state management
     private int currentImageIndex = 0;
     private List<string> bannerImages = new()
     {
@@ -81,6 +94,10 @@
 
     private Timer? timer;
 
+    /// <summary>
+    /// Lifecycle method: Fetches the 8 most recent products from the database 
+    /// and initializes the hero banner timer.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         featuredProducts = await DbContext.Products
@@ -88,30 +105,34 @@
             .Take(8)
             .ToListAsync();
 
+        // Sanitize data: Ensure all products have images and default sizes
         foreach (var product in featuredProducts)
         {
             if (string.IsNullOrWhiteSpace(product.ImageUrl))
-            {
                 product.ImageUrl = "/images/placeholder.png";
-            }
 
             if (product.AvailableSizes == null || !product.AvailableSizes.Any())
-            {
                 product.AvailableSizes = new List<string> { "S", "M", "L", "XL" };
-            }
         }
 
+        // Setup auto-rotating banner timer (5 seconds)
         timer = new Timer(5000);
         timer.Elapsed += (sender, e) => ChangeImage();
         timer.AutoReset = true;
         timer.Enabled = true;
     }
 
+    /// <summary>
+    /// Rotates the background image of the hero section.
+    /// InvokeAsync(StateHasChanged) is required because the Timer runs on a separate thread.
+    /// </summary>
     private void ChangeImage()
     {
         currentImageIndex = (currentImageIndex + 1) % bannerImages.Count;
         InvokeAsync(StateHasChanged);
     }
+
+    // --- QUICK VIEW LOGIC ---
 
     private void OpenQuickView(Product product)
     {
@@ -129,11 +150,13 @@
 
     private static string GetImageUrl(string? url)
     {
-        return string.IsNullOrWhiteSpace(url)
-            ? "/images/placeholder.png"
-            : url.Trim();
+        return string.IsNullOrWhiteSpace(url) ? "/images/placeholder.png" : url.Trim();
     }
 
+    /// <summary>
+    /// Garbage collection: Essential to stop the timer when the user navigates away 
+    /// to prevent memory leaks in Blazor Server.
+    /// </summary>
     public void Dispose()
     {
         timer?.Dispose();

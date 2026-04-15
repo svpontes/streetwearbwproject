@@ -4,23 +4,44 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @* Base href is essential for client-side routing to function correctly *@
     <base href="/" />
     
+    @* --- EXTERNAL STYLESHEETS --- *@
+    
+    @* Bootstrap 5 CSS for responsive layout and grid system *@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
+    @* Bootstrap Icons for UI elements (stars, cart, social media icons) *@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
+    @* Custom application styles and Blazor CSS isolation bundle *@
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="StreetTshirtApp.styles.css" />
+
+    @* The HeadOutlet allows components to dynamically change page titles or meta tags.
+       InteractiveServerRenderMode with prerender: false is used to ensure the UI 
+       is initialized only once the SignalR connection is established.
+    *@
     <HeadOutlet @rendermode="new InteractiveServerRenderMode(prerender: false)" />
 </head>
 
 <body>
+    @* The Routes component is the entry point for the application's page navigation.
+       Prerendering is disabled to prevent flickering issues when components rely on 
+       browser-specific state or Scoped services.
+    *@
     <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+
+    @* --- JAVASCRIPT ASSETS --- *@
+
+    @* Custom JS for admin dashboard functionality (e.g., modal handling) *@
     <script src="/js/admin-products.js"></script>
+
+    @* The core Blazor framework script required for interactive web functionality *@
     <script src="_framework/blazor.web.js"></script>
     
-    
+    @* Bootstrap Bundle JS (includes Popper.js) for carousels, modals, and tooltips *@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

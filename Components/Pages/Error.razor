@@ -1,11 +1,21 @@
 ﻿@page "/Error"
 @using System.Diagnostics
 
+@* --- GLOBAL ERROR PAGE ---
+   Purpose: This is the default fallback page for unhandled exceptions. 
+   It captures diagnostic data to help developers trace the source of a crash.
+*@
+
 <PageTitle>Error</PageTitle>
 
 <h1 class="text-danger">Error.</h1>
 <h2 class="text-danger">An error occurred while processing your request.</h2>
 
+@* --- DIAGNOSTIC TRACING --- 
+   If a Request ID is available, it is displayed to the user. 
+   In a production support scenario, the customer can provide this ID 
+   to help the admin find the specific error in the server logs.
+*@
 @if (ShowRequestId)
 {
     <p>
@@ -13,11 +23,16 @@
     </p>
 }
 
+@* --- SECURITY GUIDELINES --- *@
 <h3>Development Mode</h3>
 <p>
     Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
 </p>
 <p>
+    @* CRITICAL SECURITY NOTE: Detailed exception messages (stack traces) 
+       should never be shown to end users in production as they reveal 
+       database structures and internal logic.
+    *@
     <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
     It can result in displaying sensitive information from exceptions to end users.
     For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
@@ -25,12 +40,20 @@
 </p>
 
 @code{
+    // Accesses the current HTTP context to retrieve tracing data
     [CascadingParameter]
     private HttpContext? HttpContext { get; set; }
 
+    // Unique identifier for the current failed request
     private string? RequestId { get; set; }
+    
+    // Logic to determine if the ID should be rendered in the UI
     private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 
+    /// <summary>
+    /// Lifecycle method: Captures the activity ID from the diagnostic listener 
+    /// or the trace identifier from the HTTP context.
+    /// </summary>
     protected override void OnInitialized() =>
         RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
 }

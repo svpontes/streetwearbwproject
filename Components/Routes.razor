@@ -1,16 +1,35 @@
-﻿<Router AppAssembly="@typeof(Program).Assembly">
+﻿@* --- APPLICATION ROUTER ---
+   Purpose: This component intercepts browser navigation and maps requested URLs 
+   to the corresponding Razor components in the assembly.
+*@
+
+<Router AppAssembly="@typeof(Program).Assembly">
+    @* --- ROUTE FOUND ---
+       Triggered when the requested URL matches a @page directive in any component.
+    *@
     <Found Context="routeData">
+        @* Specifies that all pages should be wrapped in the MainLayout by default *@
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        
+        @* Accessibility feature: shifts browser focus to the H1 tag upon navigation *@
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
+
+    @* --- ROUTE NOT FOUND (404) ---
+       Triggered when the user visits a URL that does not exist in the application.
+    *@
     <NotFound>
-        @* Isso garante que, se a rota falhar, o Blazor ainda use seu layout de fundo preto *@
+        @* By using LayoutView, we ensure the 404 content still inherits 
+           the global Navbar and Footer (MainLayout) for a consistent UI.
+        *@
         <LayoutView Layout="@typeof(Layout.MainLayout)">
             <div class="container mt-5 text-center text-white">
+                @* Custom branded 404 message following the BluntWear aesthetic *@
                 <h1 class="display-1 fw-bold">404</h1>
                 <p class="lead text-secondary text-uppercase" style="letter-spacing: 2px;">
                     Drip not found. This page doesn't exist.
                 </p>
+                @* CTA to return the user to the safe zone (Home) *@
                 <a href="/" class="btn btn-outline-light rounded-0 mt-3">BACK TO HOME</a>
             </div>
         </LayoutView>

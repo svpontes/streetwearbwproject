@@ -5,16 +5,19 @@
 @inject StreetTshirtApp.Services.AuthService AuthService
 @inject NavigationManager NavManager
 
-
 @page "/register"
-@inject StreetTshirtApp.Services.AuthService AuthService
-@inject NavigationManager NavManager
+
+@* --- REGISTRATION PAGE ---
+   Purpose: Allows new users to create an account, persists data to SQLite, 
+   and automatically authenticates the user upon successful creation.
+*@
 
 <div class="row justify-content-center align-items-center min-vh-100" style="margin-top: -100px;">
     <div class="col-md-5">
         <div class="card border-0 shadow-lg p-4 bg-black text-white rounded-0">
             <h2 class="text-center fw-bold mb-4" style="letter-spacing: 3px;">JOIN BLUNTWEAR WORLD</h2>
             
+            @* User Input Fields with Two-Way Data Binding (@bind) *@
             <div class="mb-3">
                 <label class="small fw-bold text-secondary">FULL NAME</label>
                 <input type="text" @bind="name" class="form-control bg-transparent border-secondary text-white rounded-0 py-2" placeholder="Your Name" />
@@ -30,11 +33,20 @@
                 <input type="password" @bind="password" class="form-control bg-transparent border-secondary text-white rounded-0 py-2" />
             </div>
 
+            @* Feedback for validation or database errors *@
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger bg-transparent border-danger text-danger small rounded-0 mb-3">
+                    @errorMessage
+                </div>
+            }
+
+            @* The button is disabled during processing to prevent duplicate form submissions *@
             <button class="btn btn-light w-100" @onclick="HandleRegister" disabled="@isProcessing">
                 @(isProcessing ? "CREATING ACCOUNT..." : "REGISTER")
             </button>
 
-            <div class="text-center">
+            <div class="text-center mt-3">
                 <a href="/login" class="text-secondary small text-decoration-none hover-white">Already a member? Login here</a>
             </div>
         </div>
@@ -42,14 +54,20 @@
 </div>
 
 @code {
+    // Local state variables for form handling
     private string name = "";
     private string email = "";
     private string password = "";
     private string errorMessage = "";
     private bool isProcessing = false;
 
+    /// <summary>
+    /// Handles the user registration logic, including validation, 
+    /// duplicate checks, and database persistence.
+    /// </summary>
     private async Task HandleRegister()
     {
+        // Basic Client-side validation
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
         {
             errorMessage = "Please fill in all fields.";
@@ -61,7 +79,7 @@
 
         try 
         {
-            // 1. Verificar se o e-mail já existe (Segurança)
+            // 1. SECURITY CHECK: Verify if the email already exists in the database
             var userExists = await DbContext.Users.AnyAsync(u => u.Email == email);
             if (userExists)
             {
@@ -70,28 +88,29 @@
                 return;
             }
 
-            // 2. Criar o novo usuário
+            // 2. DATA MODELING: Map input values to a new User entity
             var newUser = new User
             {
                 Name = name,
                 Email = email,
-                Password = password, // Em produção, use Hash!
-                Role = "Customer",   // Padrão para novos registros
+                Password = password, // Note: In production, passwords should always be hashed/encrypted
+                Role = "Customer",   // Default role for new self-registrations
                 CreatedAt = DateTime.Now
             };
 
-            // 3. Salvar no SQLite
+            // 3. PERSISTENCE: Save the new record to the SQLite database
             DbContext.Users.Add(newUser);
             await DbContext.SaveChangesAsync();
 
-            // 4. Fazer o login automático após registrar
+            // 4. SESSION MANAGEMENT: Automatically log the user in to improve UX flow
             await AuthService.Login(email, password);
             
-            // 5. Redirecionar
+            // 5. NAVIGATION: Redirect to the home page after successful onboarding
             NavManager.NavigateTo("/");
         }
         catch (Exception ex)
         {
+            // Fallback for database connection issues or constraint violations
             errorMessage = "Error saving to database: " + ex.Message;
         }
         finally
